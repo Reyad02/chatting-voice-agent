@@ -1,0 +1,56 @@
+{
+  "bed250c0-182c-49fb-8de6-446bfc94f02b": [
+    {
+      "user_message": "remind me later that i have do marketing, i have to buy rice, vegetables, egg, medicine etc. can you make a list",
+      "ai_message": "\nYour note has been saved successfully! Here it is for your reference:\n\n**Reminder:**\n- You need to do marketing.\n- Purchase the following items: **rice, vegetables, egg, medicine, etc.**\n\nIf you need to update, set a reminder, or add more items to your shopping list, just let me know!"
+    },
+    {
+      "user_message": "Thanks buddy",
+      "ai_message": "You're welcome! If you need any more reminders, lists, or help with anything else, just let me know. Happy to assist! \ud83d\ude0a"
+    },
+    {
+      "user_message": "do you remember about my notes",
+      "ai_message": "Yes, I remember your note! Here\u2019s what you asked me to save:\n\n**Reminder:**\n- You need to do marketing.\n- Purchase the following items: rice, vegetables, egg, medicine, etc.\n\nIf you'd like to update your note, add more items, or need a reminder, just let me know!"
+    },
+    {
+      "user_message": "can you tell me my notes",
+      "ai_message": "Here\u2019s the note you previously asked me to save:\n\n**Reminder:**\n- You need to do marketing.\n- Purchase the following items: rice, vegetables, egg, medicine, etc.\n\nIf you want to update or add anything to this note, just let me know!"
+    }
+  ],
+  "6e0362b8-f248-40d0-9203-e735a32dba74": [
+    {
+      "user_message": "I have a meeting tomorrow",
+      "ai_message": "Could you please provide the time, the title of the meeting, and who will be attending? Once I have those details, I can help you schedule the meeting."
+    }
+  ],
+  "3098b460-1247-4263-966a-c9ecb78bd336": [
+    {
+      "user_message": "Hi",
+      "ai_message": "Hello! How can I help you today?"
+    },
+    {
+      "user_message": "I have a meeting tommorow",
+      "ai_message": "Great! Could you please provide the time of the meeting and the title or subject for the meeting? If you\u2019d like to invite others, let me know their names or emails as well."
+    },
+    {
+      "user_message": "10 am ",
+      "ai_message": "Thanks! What is the title or subject of the meeting? Also, would you like to invite anyone else to this meeting? If so, please provide their names or emails."
+    },
+    {
+      "user_message": "the meeting should be increase the sell ",
+      "ai_message": "\nYour meeting titled **\"Increase the Sell\"** has been successfully scheduled for **December 16, 2025 at 10:00**.\n\nIf you need to add participants, set an agenda, or make any changes to the meeting details, please let me know!"
+    }
+  ],
+  "ca47f2f5-e22a-4314-93f8-aa98bb312270": [
+    {
+      "user_message": "i have a meeting buddy",
+      "ai_message": "Great! Could you please provide the date, time, and title of the meeting so I can schedule it for you?"
+    }
+  ],
+  "db4c4755-a8e3-4b69-9445-3ce6e10d6187": [
+    {
+      "user_message": "i have a meeting tomorrow",
+      "ai_message": "Could you please provide the time of the meeting and a title or brief description for it? Once I have that information, I can schedule it for you."
+    }
+  ]
+}
