@@ -8,42 +8,50 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from dotenv import dotenv_values
-
-from google.auth.transport.requests import Request as GoogleRequest
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-import os.path
+from utils.helpers import to_rfc3339
+from utils.google_calender_auth import get_credentials
 
 
-SCOPES = ["https://www.googleapis.com/auth/calendar"]
+def find_events(start_datetime: str, end_datetime: str, timezone: str, query: str | None = None):
+    try:
+        creds = get_credentials()
+        service = build("calendar", "v3", credentials=creds)
 
-def get_credentials():
-    """Shows basic usage of the Google Calendar API.
-    Prints the start and name of the next 10 events on the user's calendar.
-    """
-    creds = None
-    # The file token.json stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
-    if os.path.exists("token.json"):
-        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(GoogleRequest())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-            "credentials.json", SCOPES
-        )
-        creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open("token.json", "w") as token:
-            token.write(creds.to_json())
-    
-    print("Google Calendar credentials obtained.")
-    return creds
+        print(start_datetime, end_datetime, timezone, query)
+        start_rfc3339 = to_rfc3339(start_datetime, timezone)
+        end_rfc3339 = to_rfc3339(end_datetime, timezone)
+        events_result = service.events().list(
+            calendarId="primary",
+            timeMin=start_rfc3339,
+            timeMax=end_rfc3339,
+            # q=query,
+            singleEvents=True,
+            orderBy="startTime",
+            timeZone=timezone
+        ).execute()
+
+        events = events_result.get("items", [])
+        print(f"Found {len(events)} events.")
+        print(events)
+
+        return {
+            "status": "success",
+            "count": len(events),
+            "events": [
+                {
+                    "event_id": e["id"],
+                    "summary": e.get("summary"),
+                    "start": e["start"].get("dateTime"),
+                    "end": e["end"].get("dateTime")
+                }
+                for e in events
+            ]
+        }
+
+    except HttpError as error:
+        return {"status": "error", "error": str(error)}
 
 def create_event(service, summary, description, start_datetime, end_datetime, timezone):
     try: 
@@ -147,8 +155,14 @@ async def handle_media_stream(websocket: WebSocket) -> None:
                 Current server date & time: {now}
                 
                 If the user wants to schedule a meeting but does not provide all 
-                required details (summary, description, start_datetime, end_datetime, timezone) — ask follow-up questions. After 
-                gathering all necessary information, use the 'schedule_meeting' tool 
+                required details (summary, description, start_datetime, end_datetime, timezone) — ask follow-up questions. 
+                
+                VALID timezone examples:
+                - Asia/Dhaka (Bangladesh)
+                - Europe/London (UK)
+                - America/New_York (USA)
+                
+                After gathering all necessary information, use the 'schedule_meeting' tool 
                 to schedule the meeting.
                 
                 If the user gives an important point like "remind me", 
@@ -172,9 +186,14 @@ async def handle_media_stream(websocket: WebSocket) -> None:
     def schedule_meeting(summary:str, description:str, start_datetime:str, end_datetime:str, timezone:str) -> str:
         logger.info("<-- Calling schedule_meeting function -->")
         creds = get_credentials()
-        service = build("calendar", "v3", credentials=creds)       
+        service = build("calendar", "v3", credentials=creds) 
+        existing_events = find_events(start_datetime, end_datetime, timezone)
+        if existing_events["count"] > 0:
+            events_list = "\n".join(
+                [f"- {e['summary']} from {e['start']} to {e['end']}" for e in existing_events["events"]]
+            )
+            return f"There are already events scheduled during this time:\n{events_list}\nPlease choose a different time."
         meeting = create_event(service, summary=summary, description=description, start_datetime=start_datetime, end_datetime=end_datetime, timezone=timezone)
-        # schedule_meeting_list.append(meeting)
         logger.info(f"<-- Calling schedule_meeting function for {summary} {start_datetime} {end_datetime} -->")
         return f"Meeting scheduled successfully. {meeting.get('htmlLink')}"
 

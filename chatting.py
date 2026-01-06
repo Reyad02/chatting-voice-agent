@@ -2,112 +2,63 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from openai import OpenAI
 from datetime import datetime
+from zoneinfo import ZoneInfo  
 from dotenv import dotenv_values
 import json
-import uuid
-import os
-
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-
-SCOPES = ["https://www.googleapis.com/auth/calendar"]
+from utils.helpers import to_rfc3339, create_event, load_sessions, save_sessions, get_or_create_session
+from utils.google_calender_auth import get_credentials
 
 env_vars = dotenv_values(".env")
 OPENAI_API_KEY = env_vars.get("OPENAI_API_KEY")
 
-schedule_meeting_list = []
 note_storage_list = []
 
-SESSIONS_FILE = "chat_sessions.json"
+def find_events(start_datetime: str, end_datetime: str, timezone: str):
+    try:
+        creds = get_credentials()
+        service = build("calendar", "v3", credentials=creds)
 
-def get_credentials():
-    """Shows basic usage of the Google Calendar API.
-    Prints the start and name of the next 10 events on the user's calendar.
-    """
-    creds = None
-    # The file token.json stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
-    if os.path.exists("token.json"):
-        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-            "credentials.json", SCOPES
-        )
-        creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open("token.json", "w") as token:
-            token.write(creds.to_json())
-    
-    print("Google Calendar credentials obtained.")
-    return creds
+        start_rfc3339 = to_rfc3339(start_datetime, timezone)
+        end_rfc3339 = to_rfc3339(end_datetime, timezone)
+        events_result = service.events().list(
+            calendarId="primary",
+            timeMin=start_rfc3339,
+            timeMax=end_rfc3339,
+            # q=query,
+            singleEvents=True,
+            orderBy="startTime",
+            timeZone=timezone
+        ).execute()
 
-def create_event(service, summary, description, start_datetime, end_datetime, timezone):
-    try: 
-        print("Creating event on Google Calendar...")
-        event = {
-            'summary': summary,
-            'description': description,
-            'colorId': '6',
-            'start': {
-                'dateTime': start_datetime,
-                'timeZone': timezone,
-            },
-            'end': {
-                'dateTime': end_datetime,
-                'timeZone': timezone,
-            }
+        events = events_result.get("items", [])
+        # print(f"Found {len(events)} events.")
+        # print(events)
+
+        return {
+            "status": "success",
+            "count": len(events),
+            "events": [
+                {
+                    "event_id": e["id"],
+                    "summary": e.get("summary"),
+                    "start": e["start"].get("dateTime"),
+                    "end": e["end"].get("dateTime")
+                }
+                for e in events
+            ]
         }
-    
-        created_event = service.events().insert(calendarId='primary', body=event).execute()
-        print(f"Event created: {created_event.get('htmlLink')}")
-        return created_event
+
     except HttpError as error:
-        print(f"An error occurred: {error}")
-
-
-def load_sessions():
-    """Load all chat sessions from file."""
-    if os.path.exists(SESSIONS_FILE):
-        with open(SESSIONS_FILE, "r") as f:
-            try:
-                return json.load(f)
-            except json.JSONDecodeError:
-                return {}
-    return {}
-
-def save_sessions(sessions):
-    """Save all chat sessions to file."""
-    with open(SESSIONS_FILE, "w") as f:
-        json.dump(sessions, f, indent=2)
-
-def get_or_create_session(sessions, session_id=None):
-    """Return existing session if found, otherwise create a new one."""
-    if session_id and session_id in sessions:
-        return session_id
-    new_id = session_id or str(uuid.uuid4())
-    sessions[new_id] = []
-    return new_id
+        return {"status": "error", "error": str(error)}
 
 def schedule_meeting(summary:str, description:str, start_datetime:str, end_datetime:str, timezone:str):
     try:
         creds = get_credentials()
         service = build("calendar", "v3", credentials=creds)
         meeting=create_event(service, summary=summary, description=description, start_datetime=start_datetime, end_datetime=end_datetime, timezone=timezone)
-        # meeting = {
-        #     "date": date,
-        #     "time": time,
-        #     "title": title,
-        # }
-        # schedule_meeting_list.append(meeting)
-        return {"status": "Meeting scheduled successfully", "meeting": meeting}
+        return {"status": "Meeting scheduled successfully", "message": meeting}
     except Exception as e:
         return {"status": "Error scheduling meeting", "error": str(e)}
 
@@ -169,6 +120,26 @@ tools = [
             "additionalProperties": False,
         },
         "strict": True
+    },
+    {
+        "type": "function",
+        "name": "find_events",
+        "description": "Find calendar events by date/time and optional title keywords.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "start_datetime": { "type": "string" },
+                "end_datetime": { "type": "string" },
+                "timezone": { "type": "string" },
+                "query": {
+                    "type": "string",
+                    "description": "Optional meeting title or keywords"
+                }
+            },
+            "required": ["start_datetime", "end_datetime", "timezone"],
+            "additionalProperties": False
+        },
+        # "strict": False
     }
 ]
 
@@ -196,9 +167,21 @@ def chat(request: ChatRequest):
                 You can chat normally with the user.
                 Current server date & time: {now}
                 
+                If the user wants to know about their calendar events, then use the 'find_events' tool. Ask for date/time range and optional title keywords if not provided.
+                
                 If the user wants to schedule a meeting but does not provide all 
-                required details (summary, description, start_datetime, end_datetime, timezone) — ask follow-up questions. After 
-                gathering all necessary information, use the 'schedule_meeting' tool 
+                required details (summary, description, start_datetime, end_datetime, timezone) — ask follow-up questions. 
+                
+                VALID timezone examples:
+                - Asia/Dhaka (Bangladesh)
+                - Asia/Kolkata (India)
+                - Europe/London (UK)
+                - America/New_York (USA)
+                - America/Los_Angeles (USA)
+                
+                In their scheduling time if you find any existing events during that time, inform the user and ask for a different time.
+                
+                After gathering all necessary information, use the 'schedule_meeting' tool 
                 to schedule the meeting.
                 
                 If the user gives an important point like "remind me", 
@@ -232,13 +215,26 @@ def chat(request: ChatRequest):
         tool_args = json.loads(tool_call.arguments)
 
         if tool_name == "schedule_meeting":
-            result = schedule_meeting(
-                summary=tool_args["summary"],
-                description=tool_args["description"],
-                start_datetime=tool_args["start_datetime"],
-                end_datetime=tool_args["end_datetime"],
-                timezone=tool_args["timezone"]
-            )
+            existing_events = find_events(tool_args["start_datetime"], tool_args["end_datetime"], tool_args["timezone"])
+            if existing_events["count"] > 0:
+                events_list = "\n".join(
+                    [f"- {e['summary']} from {e['start']} to {e['end']}" for e in existing_events["events"]]
+                )
+                # print(events_list)
+                result  = f"There are already events scheduled during this time:\n{events_list}\nPlease choose a different time."
+            else:
+                    
+                scheduled_meeting = schedule_meeting(
+                    summary=tool_args["summary"],
+                    description=tool_args["description"],
+                    start_datetime=tool_args["start_datetime"],
+                    end_datetime=tool_args["end_datetime"],
+                    timezone=tool_args["timezone"]
+                )
+                result = scheduled_meeting["message"]
+                    
+        elif tool_name == "find_events":
+            result = find_events(tool_args["start_datetime"], tool_args["end_datetime"], tool_args["timezone"])
             
         elif tool_name == "save_note":
             result = save_note(
@@ -252,8 +248,7 @@ def chat(request: ChatRequest):
         
         output = output + "\n" + final_response.output_text 
             
-        print(schedule_meeting_list)
-        print(note_storage_list)
+        # print(note_storage_list)
     
     conversation_entry = {
         "user_message": request.message,
