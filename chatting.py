@@ -7,6 +7,14 @@ import json
 import uuid
 import os
 
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+
+SCOPES = ["https://www.googleapis.com/auth/calendar"]
+
 env_vars = dotenv_values(".env")
 OPENAI_API_KEY = env_vars.get("OPENAI_API_KEY")
 
@@ -14,6 +22,56 @@ schedule_meeting_list = []
 note_storage_list = []
 
 SESSIONS_FILE = "chat_sessions.json"
+
+def get_credentials():
+    """Shows basic usage of the Google Calendar API.
+    Prints the start and name of the next 10 events on the user's calendar.
+    """
+    creds = None
+    # The file token.json stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+    if os.path.exists("token.json"):
+        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+            "credentials.json", SCOPES
+        )
+        creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open("token.json", "w") as token:
+            token.write(creds.to_json())
+    
+    print("Google Calendar credentials obtained.")
+    return creds
+
+def create_event(service, summary, description, start_datetime, end_datetime, timezone):
+    try: 
+        print("Creating event on Google Calendar...")
+        event = {
+            'summary': summary,
+            'description': description,
+            'colorId': '6',
+            'start': {
+                'dateTime': start_datetime,
+                'timeZone': timezone,
+            },
+            'end': {
+                'dateTime': end_datetime,
+                'timeZone': timezone,
+            }
+        }
+    
+        created_event = service.events().insert(calendarId='primary', body=event).execute()
+        print(f"Event created: {created_event.get('htmlLink')}")
+        return created_event
+    except HttpError as error:
+        print(f"An error occurred: {error}")
+
 
 def load_sessions():
     """Load all chat sessions from file."""
@@ -38,14 +96,20 @@ def get_or_create_session(sessions, session_id=None):
     sessions[new_id] = []
     return new_id
 
-def schedule_meeting(date: str, time: str, title: str):
-    meeting = {
-        "date": date,
-        "time": time,
-        "title": title,
-    }
-    schedule_meeting_list.append(meeting)
-    return {"status": "Meeting scheduled successfully", "meeting": meeting}
+def schedule_meeting(summary:str, description:str, start_datetime:str, end_datetime:str, timezone:str):
+    try:
+        creds = get_credentials()
+        service = build("calendar", "v3", credentials=creds)
+        meeting=create_event(service, summary=summary, description=description, start_datetime=start_datetime, end_datetime=end_datetime, timezone=timezone)
+        # meeting = {
+        #     "date": date,
+        #     "time": time,
+        #     "title": title,
+        # }
+        # schedule_meeting_list.append(meeting)
+        return {"status": "Meeting scheduled successfully", "meeting": meeting}
+    except Exception as e:
+        return {"status": "Error scheduling meeting", "error": str(e)}
 
 def save_note(content: str):
     note = {
@@ -59,24 +123,32 @@ tools = [
     {
         "type": "function",
         "name": "schedule_meeting",
-        "description": "Schedule a meeting with specified date, time, and title.",
+        "description": "Schedule a meeting with specified summary, description, start_datetime, end_datetime, and timezone.",
         "parameters": {
             "type": "object",
             "properties": {
-                "date" :{
+                "summary" :{
                     "type": "string",
-                    "description": "Date of the meeting in YYYY-MM-DD format"
+                    "description": "Summary of the meeting"
                 },
-                "time": {
+                "description": {
                     "type": "string",
-                    "description": "Time of the meeting in HH:MM format"
+                    "description": "Description of the meeting"
                 },
-                "title": {
+                "start_datetime": {
                     "type": "string",
-                    "description": "Title of the meeting"
+                    "description": "Start date and time of the meeting in ISO 8601 format"
+                },
+                "end_datetime": {
+                    "type": "string",
+                    "description": "End date and time of the meeting in ISO 8601 format"
+                },
+                "timezone": {
+                    "type": "string",
+                    "description": "Timezone of the meeting"
                 }
             },
-            "required": ["date", "time", "title"],
+            "required": ["summary", "description", "start_datetime", "end_datetime", "timezone"],
             "additionalProperties": False,
         },
         "strict": True,
@@ -125,7 +197,7 @@ def chat(request: ChatRequest):
                 Current server date & time: {now}
                 
                 If the user wants to schedule a meeting but does not provide all 
-                required details (date, time, title) — ask follow-up questions. After 
+                required details (summary, description, start_datetime, end_datetime, timezone) — ask follow-up questions. After 
                 gathering all necessary information, use the 'schedule_meeting' tool 
                 to schedule the meeting.
                 
@@ -161,9 +233,11 @@ def chat(request: ChatRequest):
 
         if tool_name == "schedule_meeting":
             result = schedule_meeting(
-                date=tool_args["date"],
-                time=tool_args["time"],
-                title=tool_args["title"],
+                summary=tool_args["summary"],
+                description=tool_args["description"],
+                start_datetime=tool_args["start_datetime"],
+                end_datetime=tool_args["end_datetime"],
+                timezone=tool_args["timezone"]
             )
             
         elif tool_name == "save_note":

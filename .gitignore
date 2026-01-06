@@ -18,3 +18,5 @@ htmlcov/
 .tox/
 .nox/
 .pytest_cache/
+credentials.json
+token.json

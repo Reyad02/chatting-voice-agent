@@ -1,56 +1,28 @@
 {
-  "bed250c0-182c-49fb-8de6-446bfc94f02b": [
+  "1d784cc9-f3f0-4c2a-b34f-49d1257cc28b": [
     {
-      "user_message": "remind me later that i have do marketing, i have to buy rice, vegetables, egg, medicine etc. can you make a list",
-      "ai_message": "\nYour note has been saved successfully! Here it is for your reference:\n\n**Reminder:**\n- You need to do marketing.\n- Purchase the following items: **rice, vegetables, egg, medicine, etc.**\n\nIf you need to update, set a reminder, or add more items to your shopping list, just let me know!"
+      "user_message": "Hi buddy how are you?",
+      "ai_message": "Hello! I\u2019m doing great, thank you for asking. How can I assist you today?"
     },
     {
-      "user_message": "Thanks buddy",
-      "ai_message": "You're welcome! If you need any more reminders, lists, or help with anything else, just let me know. Happy to assist! \ud83d\ude0a"
+      "user_message": "i have a meeting tomorrow. the meeting is about software development. In this meeting all developer will invited and share there success and fail story",
+      "ai_message": "Great! I can help you schedule the meeting. To proceed, I\u2019ll need a few more details:\n\n1. What time will the meeting start and end?\n2. What is your time zone?\n3. What would you like to use as the meeting title or summary?\n\nOnce you provide these details, I can schedule the meeting for you!"
     },
     {
-      "user_message": "do you remember about my notes",
-      "ai_message": "Yes, I remember your note! Here\u2019s what you asked me to save:\n\n**Reminder:**\n- You need to do marketing.\n- Purchase the following items: rice, vegetables, egg, medicine, etc.\n\nIf you'd like to update your note, add more items, or need a reminder, just let me know!"
+      "user_message": "the meeting is today 12 pm to 1pm and title could be software engineer success story",
+      "ai_message": "Thank you for the details! Before I schedule the meeting, could you please confirm your time zone (e.g., EST, PST, GMT, IST, etc.)? This will ensure the timing is accurate for everyone involved."
     },
     {
-      "user_message": "can you tell me my notes",
-      "ai_message": "Here\u2019s the note you previously asked me to save:\n\n**Reminder:**\n- You need to do marketing.\n- Purchase the following items: rice, vegetables, egg, medicine, etc.\n\nIf you want to update or add anything to this note, just let me know!"
-    }
-  ],
-  "6e0362b8-f248-40d0-9203-e735a32dba74": [
-    {
-      "user_message": "I have a meeting tomorrow",
-      "ai_message": "Could you please provide the time, the title of the meeting, and who will be attending? Once I have those details, I can help you schedule the meeting."
-    }
-  ],
-  "3098b460-1247-4263-966a-c9ecb78bd336": [
-    {
-      "user_message": "Hi",
-      "ai_message": "Hello! How can I help you today?"
+      "user_message": "the time zone will be gmt",
+      "ai_message": "\nYour meeting **\"Software Engineer Success Story\"** was scheduled successfully!  \nHere are the details:\n\n- **Description:** A meeting where all developers are invited to share their success and failure stories in software development.\n- **Date & Time:** January 6, 2026, from 18:00 to 19:00 (GMT+6)\n- **Location:** Online (Google Calendar Event)\n- **Organizer:** almomenreyad02@gmail.com  \n- **Event Link:** [View/Edit Event](https://www.google.com/calendar/event?eid=anFicWI0ZHZzZDIwdmc2anFsN2ljb2Zxa2cgYWxtb21lbnJleWFkMDJAbQ)\n\n**Reminders:** Default reminders are set.\n\nWould you like to:\n- Add guests?\n- Set custom reminders?\n- Attach meeting materials?\n- Do something else?\n\nLet me know how you'd like to proceed!"
     },
     {
-      "user_message": "I have a meeting tommorow",
-      "ai_message": "Great! Could you please provide the time of the meeting and the title or subject for the meeting? If you\u2019d like to invite others, let me know their names or emails as well."
+      "user_message": "you make a mistake. the meeting should be 12 pm to 1 pm according to the gmt +6.00",
+      "ai_message": "\nYour meeting has been scheduled successfully!\n\n**Meeting Details:**\n\n- **Title:** Software Engineer Success Story  \n- **Description:** A meeting where all developers are invited to share their success and failure stories in software development.\n- **Date & Time:** 6th January 2026, 12:00 PM \u2013 1:00 PM (GMT+06:00)\n- **Location:** [Google Calendar Link](https://www.google.com/calendar/event?eid=dW5uaHZ2aWp2MGF1YW9xc24yaWFkMDJraWsgYWxtb21lbnJleWFkMDJAbQ)\n- **Organizer:** almomenreyad02@gmail.com\n\n**Reminders:** Default calendar reminders are set.\n\nIf you need to invite more attendees, add additional details, or make changes to the event, let me know!"
     },
     {
-      "user_message": "10 am ",
-      "ai_message": "Thanks! What is the title or subject of the meeting? Also, would you like to invite anyone else to this meeting? If so, please provide their names or emails."
-    },
-    {
-      "user_message": "the meeting should be increase the sell ",
-      "ai_message": "\nYour meeting titled **\"Increase the Sell\"** has been successfully scheduled for **December 16, 2025 at 10:00**.\n\nIf you need to add participants, set an agenda, or make any changes to the meeting details, please let me know!"
-    }
-  ],
-  "ca47f2f5-e22a-4314-93f8-aa98bb312270": [
-    {
-      "user_message": "i have a meeting buddy",
-      "ai_message": "Great! Could you please provide the date, time, and title of the meeting so I can schedule it for you?"
-    }
-  ],
-  "db4c4755-a8e3-4b69-9445-3ce6e10d6187": [
-    {
-      "user_message": "i have a meeting tomorrow",
-      "ai_message": "Could you please provide the time of the meeting and a title or brief description for it? Once I have that information, I can schedule it for you."
+      "user_message": "can you delete the event",
+      "ai_message": "Currently, I don't have the ability to delete events from your calendar directly. You\u2019ll need to delete the meeting manually from your calendar using the platform (such as Google Calendar or Outlook) where it was scheduled.\n\nWould you like step-by-step instructions on how to delete the event, or is there anything else I can assist you with regarding your schedule?"
     }
   ]
 }

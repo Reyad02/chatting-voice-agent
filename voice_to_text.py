@@ -9,6 +9,66 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from dotenv import dotenv_values
 
+from google.auth.transport.requests import Request as GoogleRequest
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+import os.path
+
+
+SCOPES = ["https://www.googleapis.com/auth/calendar"]
+
+def get_credentials():
+    """Shows basic usage of the Google Calendar API.
+    Prints the start and name of the next 10 events on the user's calendar.
+    """
+    creds = None
+    # The file token.json stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+    if os.path.exists("token.json"):
+        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(GoogleRequest())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+            "credentials.json", SCOPES
+        )
+        creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open("token.json", "w") as token:
+            token.write(creds.to_json())
+    
+    print("Google Calendar credentials obtained.")
+    return creds
+
+def create_event(service, summary, description, start_datetime, end_datetime, timezone):
+    try: 
+        print("Creating event on Google Calendar...")
+        event = {
+            'summary': summary,
+            'description': description,
+            'colorId': '6',
+            'start': {
+                'dateTime': start_datetime,
+                'timeZone': timezone,
+            },
+            'end': {
+                'dateTime': end_datetime,
+                'timeZone': timezone,
+            }
+        }
+    
+        created_event = service.events().insert(calendarId='primary', body=event).execute()
+        print(f"Event created: {created_event.get('htmlLink')}")
+        return created_event
+    except HttpError as error:
+        print(f"An error occurred: {error}")
+
+
 env_vars = dotenv_values(".env")
 OPENAI_API_KEY = env_vars.get("OPENAI_API_KEY")
 
@@ -87,7 +147,7 @@ async def handle_media_stream(websocket: WebSocket) -> None:
                 Current server date & time: {now}
                 
                 If the user wants to schedule a meeting but does not provide all 
-                required details (date, time, title) — ask follow-up questions. After 
+                required details (summary, description, start_datetime, end_datetime, timezone) — ask follow-up questions. After 
                 gathering all necessary information, use the 'schedule_meeting' tool 
                 to schedule the meeting.
                 
@@ -109,16 +169,14 @@ async def handle_media_stream(websocket: WebSocket) -> None:
     @realtime_agent.register_realtime_function(
         name="schedule_meeting", description=" schedule a meeting in google calendar with time, date, and title"
     )
-    def schedule_meeting(date: str, time: str, title: str) -> str:
-        logger.info("<-- Calling get_weather function -->")
-        meeting = {
-            "date": date,
-            "time": time,
-            "title": title
-        }
-        schedule_meeting_list.append(meeting)
-        logger.info(f"<-- Calling schedule_meeting function for {date} {time} {title} -->")
-        return "Meeting scheduled successfully."
+    def schedule_meeting(summary:str, description:str, start_datetime:str, end_datetime:str, timezone:str) -> str:
+        logger.info("<-- Calling schedule_meeting function -->")
+        creds = get_credentials()
+        service = build("calendar", "v3", credentials=creds)       
+        meeting = create_event(service, summary=summary, description=description, start_datetime=start_datetime, end_datetime=end_datetime, timezone=timezone)
+        # schedule_meeting_list.append(meeting)
+        logger.info(f"<-- Calling schedule_meeting function for {summary} {start_datetime} {end_datetime} -->")
+        return f"Meeting scheduled successfully. {meeting.get('htmlLink')}"
 
     @realtime_agent.register_realtime_function(
         name="save_note", description="Save a note with specified content and tags."
