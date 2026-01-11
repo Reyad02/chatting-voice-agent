@@ -13,7 +13,24 @@ from utils.google_calender_auth import get_credentials
 env_vars = dotenv_values(".env")
 OPENAI_API_KEY = env_vars.get("OPENAI_API_KEY")
 
-note_storage_list = []
+def build_response(
+    session_id: str,
+    ai_message: str,
+    meals=None,
+    lists=None,
+    reminders=None,
+    events=None,
+    recipes=None
+):
+    return {
+        "session_id": session_id,
+        "ai_message": ai_message,
+        "meals": meals or [],
+        "lists": lists or [],
+        "reminders": reminders or [],
+        "events": events or [],
+        "recipes": recipes or []
+    }
 
 def find_events(start_datetime: str, end_datetime: str, timezone: str):
     try:
@@ -33,6 +50,7 @@ def find_events(start_datetime: str, end_datetime: str, timezone: str):
         ).execute()
 
         events = events_result.get("items", [])
+        # print(events)
         # print(f"Found {len(events)} events.")
         # print(events)
 
@@ -53,28 +71,64 @@ def find_events(start_datetime: str, end_datetime: str, timezone: str):
     except HttpError as error:
         return {"status": "error", "error": str(error)}
 
-def schedule_meeting(summary:str, description:str, start_datetime:str, end_datetime:str, timezone:str):
+def schedule_event(summary: str, description:str, start_datetime:str, end_datetime:str, timezone:str, repeat:str="never", reminder:str="15 minutes", method:str="popup"):
     try:
         creds = get_credentials()
         service = build("calendar", "v3", credentials=creds)
-        meeting=create_event(service, summary=summary, description=description, start_datetime=start_datetime, end_datetime=end_datetime, timezone=timezone)
-        return {"status": "Meeting scheduled successfully", "message": meeting}
+        event=create_event(service, summary=summary, description=description, start_datetime=start_datetime, end_datetime=end_datetime, timezone=timezone, repeat=repeat, reminder=reminder, method=method)
+       
+        # Here you would typically save the meeting to a database or file
+        return {"status": "Meeting scheduled successfully", "event": event}
     except Exception as e:
         return {"status": "Error scheduling meeting", "error": str(e)}
 
-def save_note(content: str):
+def save_list(title: str, items: list):
     note = {
-        "content": content,
-        "timestamp": datetime.now().isoformat()
+        "title": title,
+        "items": items,
     }
-    note_storage_list.append(note)
-    return {"status": "Note saved successfully", "note": note}
+    # Here you would typically save the lists to a database or file
+    return {"status": "List saved successfully", "list": note}
+
+def add_meal(date: str, time: str, meal_type: str, title: str, description: str, calories: float):
+    meal_entry = {
+        "date": date,
+        "time": time,
+        "meal_type": meal_type,
+        "title": title,
+        "description": description,
+        "calories": calories
+    }
+    
+    # Here you would typically save the meal_entry to a database or file
+    return {"status": "Meal added successfully", "meal": meal_entry}
+
+def add_recipe(recipe_name: str, meal_type: str, cooking_time: float, description: str, ratings: float):
+    recipe_entry = {
+        "recipe_name": recipe_name,
+        "meal_type": meal_type,
+        "cooking_time": cooking_time,
+        "description": description,
+        "ratings": ratings
+    }
+    
+    # Here you would typically save the recipe_entry to a database or file
+    return {"status": "Recipe added successfully", "recipe": recipe_entry} 
+
+def add_reminders(title: str, time: str):
+    reminder_entry = {
+        "title": title,
+        "time": time
+    }
+    
+    # Here you would typically save the reminder_entry to a database or file
+    return {"status": "Reminder added successfully", "reminder": reminder_entry}
 
 tools = [
     {
         "type": "function",
-        "name": "schedule_meeting",
-        "description": "Schedule a meeting with specified summary, description, start_datetime, end_datetime, and timezone.",
+        "name": "schedule_event",
+        "description": "Schedule a meeting with specified description, start_datetime, end_datetime, and timezone.",
         "parameters": {
             "type": "object",
             "properties": {
@@ -97,49 +151,129 @@ tools = [
                 "timezone": {
                     "type": "string",
                     "description": "Timezone of the meeting"
+                },
+                "repeat": {
+                    "type": "string",
+                    "description": "Repeat frequency of the meeting (never, everyday, every_week, every_month)",
+                    "enum": ["never", "everyday", "every_week", "every_month"]
+                },
+                "reminder": {
+                    "type": "string",
+                    "description": "Reminder time before the meeting (e.g., 15 minutes)"
+                },
+                "method": {
+                    "type": "string",
+                    "description": "Reminder method (e.g., popup, email)",
+                    "enum": ["popup", "email"]
                 }
             },
             "required": ["summary", "description", "start_datetime", "end_datetime", "timezone"],
             "additionalProperties": False,
         },
-        "strict": True,
+        # "strict": True,
     },
     {
         "type": "function",
-        "name": "save_note",
-        "description": "Save a note with specified content and tags.",
+        "name": "save_list",
+        "description": "Save a note with specified title and item list.",
         "parameters": {
             "type": "object",
             "properties": {
-                "content": {
+                "title": {
                     "type": "string",
-                    "description": "Content of the note"
+                    "description": "Title of the note"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "List of items in the note"
                 }
             },
-            "required": ["content"],
+            "required": ["title", "items"],
             "additionalProperties": False,
         },
         "strict": True
     },
     {
         "type": "function",
-        "name": "find_events",
-        "description": "Find calendar events by date/time and optional title keywords.",
+        "name": "add_reminders",
+        "description": "Add a reminder with specified title and time.",
         "parameters": {
             "type": "object",
             "properties": {
-                "start_datetime": { "type": "string" },
-                "end_datetime": { "type": "string" },
-                "timezone": { "type": "string" },
-                "query": {
+                "title": {
                     "type": "string",
-                    "description": "Optional meeting title or keywords"
+                    "description": "Title of the note"
+                },
+                "time": {
+                    "type": "string",
+                    "description": "Time of the reminder in format",
+                    "enum": ["today", "this week", "next week", "this month"]
                 }
             },
-            "required": ["start_datetime", "end_datetime", "timezone"],
+            "required": ["title", "time"],
+            "additionalProperties": False,
+        },
+        "strict": True
+    },
+    # {
+    #     "type": "function",
+    #     "name": "find_events",
+    #     "description": "Find calendar events by date/time and optional title keywords.",
+    #     "parameters": {
+    #         "type": "object",
+    #         "properties": {
+    #             "start_datetime": { "type": "string" },
+    #             "end_datetime": { "type": "string" },
+    #             "timezone": { "type": "string" },
+    #             "query": {
+    #                 "type": "string",
+    #                 "description": "Optional meeting title or keywords"
+    #             }
+    #         },
+    #         "required": ["start_datetime", "end_datetime", "timezone"],
+    #         "additionalProperties": False
+    #     },
+    #     # "strict": False
+    # },
+    {
+        "type": "function",
+        "name": "add_meal",
+        "description": "Add meal to the meal tracker by date, time, meal type, title, meal description, and calories.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "date": { "type": "string", "description": "Date in YYYY-MM-DD format" },
+                "time": { "type": "string", "description": "Time in HH:MM format " },
+                "meal_type": { "type": "string", "enum": ["breakfast", "lunch", "dinner"] },
+                "title": { "type": "string" },
+                "description": { "type": "string" },
+                "calories": { "type": "number" }
+            },
+            "required": ["date", "time", "meal_type", "title", "description", "calories"],
             "additionalProperties": False
         },
-        # "strict": False
+        "strict": False
+    },
+    {
+        "type": "function",
+        "name": "add_recipe",
+        "description": "Add recipe to the meal tracker by recipe name, meal type, cooking time, description, and ratings.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "recipe_name": { "type": "string", "description": "Name of the recipe" },
+                "meal_type": { "type": "string", "enum": ["breakfast", "lunch", "dinner"] },
+                "cooking_time": { "type": "number", "description": "Cooking time in minutes" },
+                "description": { "type": "string" },
+                "ratings": { "type": "number","description": "Ratings of the recipe out of 5" }
+            },
+            "required": ["recipe_name", "meal_type", "cooking_time", "description", "ratings"],
+            "additionalProperties": False
+        },
+        "strict": False
     }
 ]
 
@@ -170,7 +304,7 @@ def chat(request: ChatRequest):
                 If the user wants to know about their calendar events, then use the 'find_events' tool. Ask for date/time range and optional title keywords if not provided.
                 
                 If the user wants to schedule a meeting but does not provide all 
-                required details (summary, description, start_datetime, end_datetime, timezone) — ask follow-up questions. 
+                required details (summary, description, start_datetime, end_datetime, timezone, repeat, reminder, method) — ask follow-up questions. 
                 
                 VALID timezone examples:
                 - Asia/Dhaka (Bangladesh)
@@ -181,7 +315,7 @@ def chat(request: ChatRequest):
                 
                 In their scheduling time if you find any existing events during that time, inform the user and ask for a different time.
                 
-                After gathering all necessary information, use the 'schedule_meeting' tool 
+                After gathering all necessary information, use the 'schedule_event' tool 
                 to schedule the meeting.
                 
                 If the user gives an important point like "remind me", 
@@ -204,6 +338,12 @@ def chat(request: ChatRequest):
     
     output = response.output_text
     
+    meals = []
+    lists = []
+    reminders = []
+    events = []
+    recipes = []
+    
     tool_call = None
     for item in response.output:
         if item.type == "function_call":
@@ -214,7 +354,7 @@ def chat(request: ChatRequest):
         tool_name = tool_call.name
         tool_args = json.loads(tool_call.arguments)
 
-        if tool_name == "schedule_meeting":
+        if tool_name == "schedule_event":
             existing_events = find_events(tool_args["start_datetime"], tool_args["end_datetime"], tool_args["timezone"])
             if existing_events["count"] > 0:
                 events_list = "\n".join(
@@ -223,33 +363,73 @@ def chat(request: ChatRequest):
                 # print(events_list)
                 result  = f"There are already events scheduled during this time:\n{events_list}\nPlease choose a different time."
             else:
-                    
-                scheduled_meeting = schedule_meeting(
+                result = schedule_event(
                     summary=tool_args["summary"],
                     description=tool_args["description"],
                     start_datetime=tool_args["start_datetime"],
                     end_datetime=tool_args["end_datetime"],
-                    timezone=tool_args["timezone"]
+                    timezone=tool_args["timezone"],
+                    repeat=tool_args.get("repeat" , "never"),
+                    reminder=tool_args.get("reminder", "15 minutes"),
+                    method=tool_args.get("method", "popup")
                 )
-                result = scheduled_meeting["message"]
+                # result = scheduled_event["event"]
+                events.append(result["event"])
                     
-        elif tool_name == "find_events":
-            result = find_events(tool_args["start_datetime"], tool_args["end_datetime"], tool_args["timezone"])
+        # elif tool_name == "find_events":
+        #     result = find_events(tool_args["start_datetime"], tool_args["end_datetime"], tool_args["timezone"])
             
-        elif tool_name == "save_note":
-            result = save_note(
-                content=tool_args["content"]
+        elif tool_name == "save_list":
+            result = save_list(
+                title=tool_args["title"],
+                items=tool_args["items"]
             )
+            lists.append(result["list"])
             
+        elif tool_name == "add_meal":
+            result = add_meal(
+                date=tool_args["date"],
+                time=tool_args["time"],
+                meal_type=tool_args["meal_type"],
+                title=tool_args["title"],
+                description=tool_args["description"],
+                calories=tool_args["calories"]
+            )
+            meals.append(result["meal"])
+            # print("Meal added:", result)
+        
+        elif tool_name == "add_recipe":
+            result = add_recipe(
+                recipe_name=tool_args["recipe_name"],
+                meal_type=tool_args["meal_type"],
+                cooking_time=tool_args["cooking_time"],
+                description=tool_args["description"],
+                ratings=tool_args["ratings"]
+            )
+            recipes.append(result["recipe"])
+            # print("Recipe added:", result)       
+         
+        elif tool_name == "add_reminders":
+            result = add_reminders(
+                title=tool_args["title"],
+                time=tool_args["time"]
+            )
+            reminders.append(result["reminder"])
+               
         final_response = openai_client.responses.create(
             model="gpt-4.1-2025-04-14",
-            input=f"Action completed: {result}"
+            # input=f"Action completed: {result}"
+            input=[
+                {"role": "system", "content": """Never mention the tool call or action in your response to the user. If any conflict in event or meeting scheduling, just only say please choose a different time. never mention that 'you will provide free times or something'. 
+                never tell user that you can update or delete anything. Just only show the results that you have done."""},
+                {"role": "user", "content": f"Action completed: {result}"}
+            ],
         )
         
         output = output + "\n" + final_response.output_text 
             
         # print(note_storage_list)
-    
+        
     conversation_entry = {
         "user_message": request.message,
         "ai_message": output,
@@ -258,7 +438,17 @@ def chat(request: ChatRequest):
     sessions[session_id].append(conversation_entry)
     save_sessions(sessions)
     
-    return {
-        "session_id": session_id,
-        "response": output
-    }
+    # return {
+    #     "session_id": session_id,
+    #     "response": output
+    # }
+    
+    return build_response(
+    session_id=session_id,
+    ai_message=output,
+    meals=meals,
+    lists=lists,
+    reminders=reminders,
+    events=events,
+    recipes=recipes
+)
