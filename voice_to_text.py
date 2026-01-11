@@ -14,67 +14,67 @@ from utils.helpers import to_rfc3339
 from utils.google_calender_auth import get_credentials
 
 
-def find_events(start_datetime: str, end_datetime: str, timezone: str, query: str | None = None):
-    try:
-        creds = get_credentials()
-        service = build("calendar", "v3", credentials=creds)
+# def find_events(start_datetime: str, end_datetime: str, timezone: str, query: str | None = None):
+#     try:
+#         creds = get_credentials()
+#         service = build("calendar", "v3", credentials=creds)
 
-        print(start_datetime, end_datetime, timezone, query)
-        start_rfc3339 = to_rfc3339(start_datetime, timezone)
-        end_rfc3339 = to_rfc3339(end_datetime, timezone)
-        events_result = service.events().list(
-            calendarId="primary",
-            timeMin=start_rfc3339,
-            timeMax=end_rfc3339,
-            # q=query,
-            singleEvents=True,
-            orderBy="startTime",
-            timeZone=timezone
-        ).execute()
+#         print(start_datetime, end_datetime, timezone, query)
+#         start_rfc3339 = to_rfc3339(start_datetime, timezone)
+#         end_rfc3339 = to_rfc3339(end_datetime, timezone)
+#         events_result = service.events().list(
+#             calendarId="primary",
+#             timeMin=start_rfc3339,
+#             timeMax=end_rfc3339,
+#             # q=query,
+#             singleEvents=True,
+#             orderBy="startTime",
+#             timeZone=timezone
+#         ).execute()
 
-        events = events_result.get("items", [])
-        print(f"Found {len(events)} events.")
-        print(events)
+#         events = events_result.get("items", [])
+#         print(f"Found {len(events)} events.")
+#         print(events)
 
-        return {
-            "status": "success",
-            "count": len(events),
-            "events": [
-                {
-                    "event_id": e["id"],
-                    "summary": e.get("summary"),
-                    "start": e["start"].get("dateTime"),
-                    "end": e["end"].get("dateTime")
-                }
-                for e in events
-            ]
-        }
+#         return {
+#             "status": "success",
+#             "count": len(events),
+#             "events": [
+#                 {
+#                     "event_id": e["id"],
+#                     "summary": e.get("summary"),
+#                     "start": e["start"].get("dateTime"),
+#                     "end": e["end"].get("dateTime")
+#                 }
+#                 for e in events
+#             ]
+#         }
 
-    except HttpError as error:
-        return {"status": "error", "error": str(error)}
+#     except HttpError as error:
+#         return {"status": "error", "error": str(error)}
 
-def create_event(service, summary, description, start_datetime, end_datetime, timezone):
-    try: 
-        print("Creating event on Google Calendar...")
-        event = {
-            'summary': summary,
-            'description': description,
-            'colorId': '6',
-            'start': {
-                'dateTime': start_datetime,
-                'timeZone': timezone,
-            },
-            'end': {
-                'dateTime': end_datetime,
-                'timeZone': timezone,
-            }
-        }
+# def create_event(service, summary, description, start_datetime, end_datetime, timezone):
+#     try: 
+#         print("Creating event on Google Calendar...")
+#         event = {
+#             'summary': summary,
+#             'description': description,
+#             'colorId': '6',
+#             'start': {
+#                 'dateTime': start_datetime,
+#                 'timeZone': timezone,
+#             },
+#             'end': {
+#                 'dateTime': end_datetime,
+#                 'timeZone': timezone,
+#             }
+#         }
     
-        created_event = service.events().insert(calendarId='primary', body=event).execute()
-        print(f"Event created: {created_event.get('htmlLink')}")
-        return created_event
-    except HttpError as error:
-        print(f"An error occurred: {error}")
+#         created_event = service.events().insert(calendarId='primary', body=event).execute()
+#         print(f"Event created: {created_event.get('htmlLink')}")
+#         return created_event
+#     except HttpError as error:
+#         print(f"An error occurred: {error}")
 
 
 env_vars = dotenv_values(".env")
@@ -150,28 +150,37 @@ async def handle_media_stream(websocket: WebSocket) -> None:
 
 
     audio_adapter = WebSocketAudioAdapter(websocket, logger=logger)
-    system_prompt = f"""You are a smart AI assistant.
+    system_prompt = f"""You are a smart AI assistant. Your name is Breya.
                 You can chat normally with the user.
                 Current server date & time: {now}
                 
-                If the user wants to schedule a meeting but does not provide all 
-                required details (summary, description, start_datetime, end_datetime, timezone) — ask follow-up questions. 
-                
-                VALID timezone examples:
-                - Asia/Dhaka (Bangladesh)
-                - Europe/London (UK)
-                - America/New_York (USA)
-                
-                After gathering all necessary information, use the 'schedule_meeting' tool 
-                to schedule the meeting.
-                
-                If the user gives an important point like "remind me", 
-                "note this", "save this", "remember this", treat it as a note 
-                and call save_note.
-
-                Only call the tool when all information is ready.
-                Do NOT guess missing details.
+                User will share their emotions, feelings, daily activities, and thoughts with you through voice messages.
+                You need to be a good listener and provide empathetic responses.
+                Based on the user's input, you can suggest activities, coping strategies, or just be there to listen.
+                Your goal is to support the user emotionally and mentally.
                 """
+    # system_prompt = "You are a smart AI assistant.
+    #             You can chat normally with the user.
+    #             Current server date & time: {now}
+                
+    #             If the user wants to schedule a meeting but does not provide all 
+    #             required details (summary, description, start_datetime, end_datetime, timezone) — ask follow-up questions. 
+                
+    #             VALID timezone examples:
+    #             - Asia/Dhaka (Bangladesh)
+    #             - Europe/London (UK)
+    #             - America/New_York (USA)
+                
+    #             After gathering all necessary information, use the 'schedule_meeting' tool 
+    #             to schedule the meeting.
+                
+    #             If the user gives an important point like "remind me", 
+    #             "note this", "save this", "remember this", treat it as a note 
+    #             and call save_note.
+
+    #             Only call the tool when all information is ready.
+    #             Do NOT guess missing details.
+    #             "
     realtime_agent = RealtimeAgent(
         name="Assistant Bot",
         system_message=system_prompt,
@@ -180,32 +189,33 @@ async def handle_media_stream(websocket: WebSocket) -> None:
         logger=logger,
     )
 
-    @realtime_agent.register_realtime_function(
-        name="schedule_meeting", description=" schedule a meeting in google calendar with time, date, and title"
-    )
-    def schedule_meeting(summary:str, description:str, start_datetime:str, end_datetime:str, timezone:str) -> str:
-        logger.info("<-- Calling schedule_meeting function -->")
-        creds = get_credentials()
-        service = build("calendar", "v3", credentials=creds) 
-        existing_events = find_events(start_datetime, end_datetime, timezone)
-        if existing_events["count"] > 0:
-            events_list = "\n".join(
-                [f"- {e['summary']} from {e['start']} to {e['end']}" for e in existing_events["events"]]
-            )
-            return f"There are already events scheduled during this time:\n{events_list}\nPlease choose a different time."
-        meeting = create_event(service, summary=summary, description=description, start_datetime=start_datetime, end_datetime=end_datetime, timezone=timezone)
-        logger.info(f"<-- Calling schedule_meeting function for {summary} {start_datetime} {end_datetime} -->")
-        return f"Meeting scheduled successfully. {meeting.get('htmlLink')}"
+    # @realtime_agent.register_realtime_function(
+    #     name="schedule_meeting", description=" schedule a meeting in google calendar with time, date, and title"
+    # )
+    # def schedule_meeting(summary:str, description:str, start_datetime:str, end_datetime:str, timezone:str) -> str:
+    #     logger.info("<-- Calling schedule_meeting function -->")
+    #     creds = get_credentials()
+    #     service = build("calendar", "v3", credentials=creds) 
+    #     existing_events = find_events(start_datetime, end_datetime, timezone)
+    #     if existing_events["count"] > 0:
+    #         events_list = "\n".join(
+    #             [f"- {e['summary']} from {e['start']} to {e['end']}" for e in existing_events["events"]]
+    #         )
+    #         return f"There are already events scheduled during this time:\n{events_list}\nPlease choose a different time."
+    #     meeting = create_event(service, summary=summary, description=description, start_datetime=start_datetime, end_datetime=end_datetime, timezone=timezone)
+    #     logger.info(f"<-- Calling schedule_meeting function for {summary} {start_datetime} {end_datetime} -->")
+    #     return f"Meeting scheduled successfully. {meeting.get('htmlLink')}"
 
-    @realtime_agent.register_realtime_function(
-        name="save_note", description="Save a note with specified content and tags."
-    )
-    def save_note(content: str, tags: list) -> str:
-        note = {
-            "content": content,
-            "tags": tags
-        }
-        note_storage_list.append(note)
-        logger.info(f"<-- Calling save_note function with content: {content} and tags: {tags} -->")
-        return "Note saved successfully."
+    # @realtime_agent.register_realtime_function(
+    #     name="save_note", description="Save a note with specified content and tags."
+    # )
+    # def save_note(content: str, tags: list) -> str:
+    #     note = {
+    #         "content": content,
+    #         "tags": tags
+    #     }
+    #     note_storage_list.append(note)
+    #     logger.info(f"<-- Calling save_note function with content: {content} and tags: {tags} -->")
+    #     return "Note saved successfully."
+   
     await realtime_agent.run()
