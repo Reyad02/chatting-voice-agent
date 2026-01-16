@@ -9,7 +9,7 @@ from dotenv import dotenv_values
 import json
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from utils.helpers import to_rfc3339, create_event, load_sessions, save_sessions, get_or_create_session
+from utils.helpers import to_rfc3339, create_event, load_sessions, save_sessions, get_or_create_session, update_event_by_title_date
 from utils.google_calender_auth import get_credentials
 from typing import Optional
 
@@ -34,7 +34,6 @@ def semantic_match(query, text, threshold=0.6):
     score = cosine_similarity(q_emb, t_emb)
     return score >= threshold, score
 
-
 meal_list = [
         {
             'date': '2026-01-16', 
@@ -57,7 +56,56 @@ meal_list = [
     ]
 recipe_list = []
 reminder_list = []
-event_list = []
+event_list = [
+    {
+        'kind': 'calendar#event', 
+        'etag': '"3537114599200510"', 
+        'id': 'c1o2si7t698qeog2k3qn6roti4', 
+        'status': 'confirmed', 
+        'htmlLink': 'https://www.google.com/calendar/event?eid=YzFvMnNpN3Q2OThxZW9nMmszcW42cm90aTQgYWxtb21lbnJleWFkMDJAbQ', 
+        'created': '2026-01-16T09:54:59.000Z', 
+        'updated': '2026-01-16T09:54:59.600Z', 
+        'summary': 'Weekly Team Sync – Project Alpha Update', 
+        'description': 'Team reviews progress on Project Alpha, discusses blockers and challenges, assigns next actions, and aligns on priorities for the upcoming week.',
+        'creator': {'email': 'almomenreyad02@gmail.com', 'self': True}, 
+        'organizer': {'email': 'almomenreyad02@gmail.com', 'self': True}, 
+        'start': {'dateTime': '2026-01-16T15:00:00+06:00', 'timeZone': 'Asia/Dhaka'},
+        'end': {'dateTime': '2026-01-16T16:00:00+06:00', 'timeZone': 'Asia/Dhaka'},
+        'iCalUID': 'c1o2si7t698qeog2k3qn6roti4@google.com', 
+        'sequence': 0, 
+        'reminders': 
+            {
+                'useDefault': False, 
+                'overrides': [{'method': 'email', 'minutes': 60}]
+            }, 
+        'eventType': 'default',
+        'date': '2026-01-16'
+    },
+    {
+        'kind': 'calendar#event', 
+        'etag': '"3537115931493726"', 
+        'id': 'bahalmlc2datvm4vrm9le9j6kk', 
+        'status': 'confirmed', 
+        'htmlLink': 'https://www.google.com/calendar/event?eid=YmFoYWxtbGMyZGF0dm00dnJtOWxlOWo2a2sgYWxtb21lbnJleWFkMDJAbQ', 
+        'created': '2026-01-16T10:06:05.000Z', 
+        'updated': '2026-01-16T10:06:05.746Z', 
+        'summary': 'testing meeting', 
+        'description': 'how to increase sell', 
+        'creator': {'email': 'almomenreyad02@gmail.com', 'self': True}, 
+        'organizer': {'email': 'almomenreyad02@gmail.com', 'self': True}, 
+        'start': {'dateTime': '2026-01-16T18:00:00+06:00', 'timeZone': 'Asia/Dhaka'}, 
+        'end': {'dateTime': '2026-01-16T19:00:00+06:00', 'timeZone': 'Asia/Dhaka'},
+        'iCalUID': 'bahalmlc2datvm4vrm9le9j6kk@google.com', 
+        'sequence': 0, 
+        'reminders': 
+            {
+                'useDefault': False, 
+                'overrides': [{'method': 'email', 'minutes': 30}]
+            }, 
+        'eventType': 'default',
+        'date': '2026-01-16'
+    }    
+]
 note_list = []
 
 
@@ -125,12 +173,131 @@ def schedule_event(summary: str, description:str, start_datetime:str, end_dateti
         service = build("calendar", "v3", credentials=creds)
         event=create_event(service, summary=summary, description=description, start_datetime=start_datetime, end_datetime=end_datetime, timezone=timezone, repeat=repeat, reminder=reminder, method=method)
        
+        dateTime = event['start'].get('dateTime')
+        date = dateTime.split("T")[0]
+        event["date"] = date
         event_list.append(event)
+        print("Event scheduled:", event)
         # Here you would typically save the meeting to a database or file
         return {"status": "Meeting scheduled successfully", "event": event}
     except Exception as e:
         return {"status": "Error scheduling meeting", "error": str(e)}
 
+def update_event(
+    summary: str,
+    date: str,
+    new_summary: Optional[str] = None,
+    description: Optional[str] = None,
+    start_datetime: Optional[str] = None,
+    end_datetime: Optional[str] = None,
+    timezone: Optional[str] = None,
+    repeat: Optional[str] = None,
+    reminder: Optional[str] = None,
+    method: Optional[str] = None,
+):
+    print(summary, date, new_summary, description, start_datetime, end_datetime, timezone, repeat, reminder, method)
+    try:
+        creds = get_credentials()
+        service = build("calendar", "v3", credentials=creds)
+
+        # ---------- 1. Find matching event ----------
+        best_match = None
+        best_score = 0.0
+
+        for e in event_list:
+            e_date = e["start"]["dateTime"].split("T")[0]
+            if e_date == date:
+                matched, score = semantic_match(
+                    summary, e.get("summary", ""), threshold=0.6
+                )
+                if matched and score > best_score:
+                    best_match = e
+                    best_score = score
+
+        if not best_match:
+            return {
+                "status": "error",
+                "message": f"No event found on {date} with summary '{summary}'"
+            }
+
+        event_id = best_match["id"]
+        event = best_match
+        
+        # print("Found event to update:", event)
+        updated_event = update_event_by_title_date(
+            event,
+            new_summary=new_summary,
+            description=description,
+            start_datetime=start_datetime,
+            end_datetime=end_datetime,
+            timezone=timezone,
+            repeat=repeat,
+            reminder=reminder,
+            method=method,
+        )
+
+        # print("Updated event data:", updated_event)
+
+        updated_event = service.events().update(
+            calendarId="primary",
+            eventId=event_id,
+            body=event
+        ).execute()
+        
+        # event must be store in the database
+  
+        print("Event updated:", updated_event)
+        
+        return {"status": "Meeting updated successfully", "event": updated_event}
+
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }
+
+def delete_event(summary: str, date: str):
+    try:
+        creds = get_credentials()
+        service = build("calendar", "v3", credentials=creds)
+        
+        best_match = None
+        best_score = 0.0
+
+        for e in event_list:
+            e_date = e["start"]["dateTime"].split("T")[0]
+            if e_date == date:
+                matched, score = semantic_match(
+                    summary, e.get("summary", ""), threshold=0.6
+                )
+                if matched and score > best_score:
+                    best_match = e
+                    best_score = score
+
+        if not best_match:
+            return {
+                "status": "error",
+                "message": f"No event found on {date} with summary '{summary}'"
+            }
+
+        event_id = best_match["id"]
+        # event = best_match
+
+        service.events().delete(
+            calendarId="primary",
+            eventId=event_id
+        ).execute()
+        
+        # event must be removed from the database
+        event_list.remove(best_match)
+
+        # print(f"Event of {summary} on {date} deleted.")
+        return {"status": "Event deleted successfully", "event": best_match}
+
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+    
 def save_list(title: str, items: list):
     note = {
         "title": title,
@@ -196,6 +363,7 @@ def delete_meal(date: str, meal_type: str, title: str):
     if best_match is None:
         return {"status": f"Meal not found using the date {date}, meal type {meal_type}, and title {title}"}
     
+    # Here you would typically delete the meal from a database or file
     meal_list.remove(best_match)
     print(meal_list)
     return {"status": "Meal deleted successfully", "meal": best_match}
@@ -238,6 +406,7 @@ def update_meal(
         best_match["calories"] = new_calories
 
     print(meal_list)
+    # Here you would typically update the meal in a database or file
 
     return {
         "status": "Meal updated successfully",
@@ -279,7 +448,7 @@ tools = [
                 },
                 "reminder": {
                     "type": "string",
-                    "description": "Reminder time before the meeting (e.g., 15 minutes)"
+                    "description": "Reminder time before the meeting (e.g., 15 minutes). The format is '<number> <unit>' where unit can be minutes, hours, days, or weeks.",
                 },
                 "method": {
                     "type": "string",
@@ -291,6 +460,80 @@ tools = [
             "additionalProperties": False,
         },
         # "strict": True,
+    },
+    {
+        "type": "function",
+        "name": "update_event",
+        "description": "Update an existing calendar event identified by summary and date with new details.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "summary": {
+                    "type": "string",
+                    "description": "Summary of the existing event to be updated"
+                },
+                "date": {
+                    "type": "string",
+                    "description": "Date of the existing event in YYYY-MM-DD format"
+                },
+                "new_summary" :{
+                    "type": "string",
+                    "description": "New summary of the event"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "New description of the event"
+                },
+                "start_datetime": {
+                    "type": "string",
+                    "description": "New start date and time of the event in ISO 8601 format"
+                },
+                "end_datetime": {
+                    "type": "string",
+                    "description": "New end date and time of the event in ISO 8601 format"
+                },
+                "timezone": {
+                    "type": "string",
+                    "description": "New timezone of the event"
+                },
+                "repeat": {
+                    "type": "string",
+                    "description": "New repeat frequency of the event (never, everyday, every_week, every_month)",
+                    "enum": ["never", "everyday", "every_week", "every_month"]
+                },
+                "reminder": {
+                    "type": "string",
+                    "description": "New reminder time before the event (e.g., 15 minutes). The format is '<number> <unit>' where unit can be minutes, hours, days, or weeks.",
+                },
+                "method": {
+                    "type": "string",
+                    "description": "New reminder method (e.g., popup, email)",
+                    "enum": ["popup", "email"]
+                }
+            },
+            "required": ["summary", "date"],
+            "additionalProperties": False,
+        }
+    },
+    {
+      "type": "function",
+      "name": "delete_event",
+        "description": "Delete a calendar event identified by summary and date.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "summary": {
+                    "type": "string",
+                    "description": "Summary of the event to be deleted"
+                },
+                "date": {
+                    "type": "string",
+                    "description": "Date of the event to be deleted in YYYY-MM-DD format"
+                }
+            },
+            "required": ["summary", "date"],
+            "additionalProperties": False,
+        } 
     },
     {
         "type": "function",
@@ -530,12 +773,35 @@ def chat(request: ChatRequest):
                     reminder=tool_args.get("reminder", "15 minutes"),
                     method=tool_args.get("method", "popup")
                 )
+                print("Event scheduled:", result)
                 # result = scheduled_event["event"]
                 events.append(result["event"])
                     
         # elif tool_name == "find_events":
         #     result = find_events(tool_args["start_datetime"], tool_args["end_datetime"], tool_args["timezone"])
             
+        elif tool_name == "update_event":
+            result = update_event(
+                summary=tool_args["summary"],
+                date=tool_args["date"],
+                new_summary=tool_args.get("new_summary"),
+                description=tool_args.get("description"),
+                start_datetime=tool_args.get("start_datetime"),
+                end_datetime=tool_args.get("end_datetime"),
+                timezone=tool_args.get("timezone"),
+                repeat=tool_args.get("repeat"),
+                reminder=tool_args.get("reminder"),
+                method=tool_args.get("method")
+            )
+            # if result["status"] == "success":
+            #     events.append(result["event"])
+        
+        elif tool_name == "delete_event":
+            result = delete_event(
+                summary=tool_args["summary"],
+                date=tool_args["date"]
+            )
+                       
         elif tool_name == "save_list":
             result = save_list(
                 title=tool_args["title"],
