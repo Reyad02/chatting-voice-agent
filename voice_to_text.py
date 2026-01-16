@@ -8,8 +8,8 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from dotenv import dotenv_values
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
+# from googleapiclient.discovery import build
+# from googleapiclient.errors import HttpError
 from utils.helpers import to_rfc3339
 from utils.google_calender_auth import get_credentials
 

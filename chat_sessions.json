@@ -516,5 +516,159 @@
       "user_message": "tomorrow description should math",
       "ai_message": "\nHomework Reminder: Math has been set for this week."
     }
+  ],
+  "4b4c6b43-eaa5-4d79-b175-4476ec7087e4": [
+    {
+      "user_message": "could you please set a meal",
+      "ai_message": "Of course! I can help you set a meal. Could you please provide the following details:\n\n1. What date do you want to set the meal for?\n2. What time should the meal be?\n3. Is it for breakfast, lunch, or dinner?\n4. What is the title/name of the meal?\n5. Any description of the meal?\n6. How many calories does it have (if known)?\n\nOnce you provide these details, I'll set up the meal for you!"
+    }
+  ],
+  "d10861b2-7d1a-41b2-80d0-06f291075023": [
+    {
+      "user_message": "could you please set a meal",
+      "ai_message": "Sure! I can help you set a meal. Could you please provide the following details so I can add the meal for you:\n\n1. Date of the meal (e.g., today, 2026-01-16, or another date)\n2. Time of the meal (e.g., 08:30, 12:00)\n3. Meal type (breakfast, lunch, or dinner)\n4. Title of the meal (e.g., Grilled Chicken Salad)\n5. Description of the meal (optional)\n6. Calories (if you want to track them)\n\nOnce you provide these details, I\u2019ll set the meal for you!"
+    },
+    {
+      "user_message": "Date of the meal: 2026-01-16, Time of the meal: 08:30, Meal type: Breakfast, Title of the meal: Oatmeal with Banana and Honey, Description of the meal: A bowl of oatmeal topped with sliced banana and a drizzle of honey, Calories: 350",
+      "ai_message": "\nYour meal \"Oatmeal with Banana and Honey\" for breakfast on 2026-01-16 at 08:30 has been added, with 350 calories."
+    }
+  ],
+  "55f90a7e-0055-429b-a46e-3ee317f5fa98": [
+    {
+      "user_message": "hey could you add a new meal. Date of the meal: 2026-01-16, Time of the meal: 12:30, Meal type: Lauch, Title of the meal: rice & chicken, Description of the meal: A bowl of rice and chicken curry, Calories: 500",
+      "ai_message": "It looks like you want to add a new meal entry, but you\u2019ve entered \"Lauch\" for the meal type. Did you mean \"Lunch\"? Please confirm the correct meal type so I can add your meal."
+    },
+    {
+      "user_message": "yes you are right. that is a typo",
+      "ai_message": "\nMeal added:  \n- Date: 2026-01-16  \n- Time: 12:30  \n- Type: Lunch  \n- Title: Rice & chicken  \n- Description: A bowl of rice and chicken curry  \n- Calories: 500"
+    }
+  ],
+  "46024c67-75d5-4688-8cae-291a9acc3b7f": [
+    {
+      "user_message": "could you please update my meal type",
+      "ai_message": "Of course! To update your meal, I'll need a few details:\n\n1. Date of the meal (e.g., 2026-01-16)\n2. Current meal type (breakfast, lunch, or dinner)\n3. Title/name of the meal you want to update\n4. The new meal type you want to change it to (breakfast, lunch, or dinner)\n5. (Optional) Any other changes you\u2019d like to make (such as time, description, or calories)\n\nCould you please provide these details?"
+    },
+    {
+      "user_message": "i want to update today breakfast title Oatmeal with Banana and Honey. the calories should be 200 and in time should be 7:00. could you update it",
+      "ai_message": "\nYour breakfast for January 16, 2026, at 07:00 has been updated to \"Oatmeal with Banana and Honey\"\u2014a bowl of oatmeal topped with sliced banana and a drizzle of honey, totaling 200 calories."
+    }
+  ],
+  "468ad9ce-9803-46d6-b3d1-33b0dc880932": [
+    {
+      "user_message": "i want to update today breakfast title Oatmeal with Banana and Honey. the calories should be 200 and in time should be 7:00. could you update it",
+      "ai_message": "\nYour breakfast on 2026-01-16 at 07:00 is now set as \"Oatmeal with Banana and Honey\" \u2014 a bowl of oatmeal topped with sliced banana and a drizzle of honey, totaling 200 calories."
+    }
+  ],
+  "4cb13029-62af-42a3-8f21-2d1d3ab666bd": [
+    {
+      "user_message": "i want to update today breakfast title Oatmeal with Banana and Honey. the calories should be 200 and in time should be 7:00. could you update it",
+      "ai_message": "\nYour breakfast meal for January 16, 2026, at 07:00 has been set to \"Oatmeal with Banana and Honey.\" This meal includes a bowl of oatmeal topped with sliced banana and a drizzle of honey, totaling 200 calories."
+    }
+  ],
+  "dd8bc162-6743-494e-a2a4-7127e76866f3": [
+    {
+      "user_message": "i want to delete toady lunch form the meal",
+      "ai_message": "\nThe meal has been deleted successfully."
+    }
+  ],
+  "a85eb970-00e2-456e-9a99-00f112cf2665": [
+    {
+      "user_message": "i want to delete toady lunch form the meal",
+      "ai_message": "\nThe meal has been deleted successfully."
+    }
+  ],
+  "13f186ea-5c55-43d8-9daa-3f46e43c2137": [
+    {
+      "user_message": "i want to delete toady lunch form the meal",
+      "ai_message": "\nThe meal you were looking for could not be found. Please check the details and try again."
+    }
+  ],
+  "d83d35c7-043f-468a-84b5-790de481a86d": [
+    {
+      "user_message": "can you delete my meal",
+      "ai_message": "Of course, I can help you delete a meal from your meal tracker. Could you please provide me with the following details so I can proceed:\n\n1. The date of the meal (e.g., 2026-01-15)\n2. The type of meal (breakfast, lunch, or dinner)\n3. The title or name of the meal you'd like to delete\n\nOnce you provide this information, I can delete the meal for you."
+    },
+    {
+      "user_message": "can you delete today meal ",
+      "ai_message": "Sure, I can help you delete a meal from today. Could you please specify:\n\n1. Which meal type do you want to delete (breakfast, lunch, or dinner)?\n2. The title or name of the meal you would like to remove?\n\nOnce you provide these details, I'll proceed with the deletion."
+    },
+    {
+      "user_message": "meal type lunch and the title was  rice & chicken",
+      "ai_message": "\nThe breakfast meal \"Oatmeal with Banana and Honey\" scheduled on 2026-01-16 at 08:30 has been deleted."
+    }
+  ],
+  "534f46fc-4993-4d22-94b2-536b6e1d363f": [
+    {
+      "user_message": "can you delete the today lunch",
+      "ai_message": "\nSorry, I couldn't find the meal you were looking for. Please check the name or try searching with different details."
+    }
+  ],
+  "c71aa194-5c35-4c38-90b6-3dfcccb31062": [
+    {
+      "user_message": "can you delete the today lunch",
+      "ai_message": "\nThe meal you searched for was not found. Please check the meal name and try again."
+    }
+  ],
+  "93aaebf4-0f1f-499b-a830-f92d9501815b": [
+    {
+      "user_message": "can you delete the today lunch title is chicken",
+      "ai_message": "\nSorry, I couldn't find the meal you requested."
+    }
+  ],
+  "96a8bbb5-38f3-4b83-8942-510ee7bcb16c": [
+    {
+      "user_message": "can you delete the today lunch title is chicken",
+      "ai_message": "\nNo meal was found for lunch on 2026-01-16 with the title \"chicken.\""
+    },
+    {
+      "user_message": "can you delete the today lunch title is rice and chicken",
+      "ai_message": "\nI couldn't find a meal with the date January 16, 2026, meal type lunch, and the title \"rice and chicken.\""
+    },
+    {
+      "user_message": "can you delete the today lunch title is rice & chicken",
+      "ai_message": "\nYour meal has been deleted. Here are your remaining meals for January 16, 2026:\n\n1. Breakfast at 08:30: Oatmeal with Banana and Honey \u2013 A bowl of oatmeal topped with sliced banana and a drizzle of honey (350 calories)\n2. Lunch at 12:30: Rice & Chicken \u2013 A bowl of rice and chicken curry (500 calories)"
+    }
+  ],
+  "4f0bccd2-aeca-4327-b06f-241b1b80ab30": [
+    {
+      "user_message": "can you delete the today lunch title is rice & chicken",
+      "ai_message": "\nYour meal for January 16, 2026, at 08:30 (Oatmeal with Banana and Honey) has been deleted."
+    }
+  ],
+  "dc1eb983-36be-45a3-a37c-38abc1a94e3b": [
+    {
+      "user_message": "can you delete the today lunch title is rice",
+      "ai_message": "\nNo meal was found for lunch with the title \"rice\" on January 16, 2026."
+    }
+  ],
+  "660a829a-8b28-4bbd-b833-d08b3ae0e250": [
+    {
+      "user_message": "can you update the today lunch title is rice",
+      "ai_message": "To update your lunch meal for today, I'll need the new details you'd like to use. Please provide:\n\n- The new title for your lunch (other than \u201crice,\u201d if it\u2019s changing).\n- Any updates to the description or calories, if necessary.\n- The new time, if you want to change it.\n\nWould you like to update anything else, or just change the title to something else? If you simply want to change the title from \"rice\" to something else, please let me know the new title."
+    },
+    {
+      "user_message": "can you update today lunch? just update the title to 'my fav food'",
+      "ai_message": "\nNo meal was found for January 16, 2026, with the meal type lunch and the title rice."
+    },
+    {
+      "user_message": "the title was 'rice $ chicken'",
+      "ai_message": "\nNo meal was found for lunch with the title \"rice $ chicken\" on January 16, 2026."
+    },
+    {
+      "user_message": "the title was 'rice & chicken'",
+      "ai_message": "\nYour lunch for January 16, 2026, at 12:30 has been set as \"my fav food\": a bowl of rice and chicken curry with 500 calories."
+    }
+  ],
+  "bbae1d03-7cb9-4d5f-b6d3-34a802f6e8be": [
+    {
+      "user_message": "can you add a new meal, Date of the meal: 2026-01-16, Time of the meal: 08:30, Meal type: Breakfast, Title of the meal: Oatmeal with Banana and Honey, Description of the meal: A bowl of oatmeal topped with sliced banana and a drizzle of honey, Calories: 350",
+      "ai_message": "\nMeal added successfully.\n\nDetails:\n- Date: 2026-01-16\n- Time: 08:30\n- Type: Breakfast\n- Title: Oatmeal with Banana and Honey\n- Description: A bowl of oatmeal topped with sliced banana and a drizzle of honey\n- Calories: 350\n- ID: 3"
+    }
+  ],
+  "339fe4c2-439e-470c-ab98-216c5ee1413b": [
+    {
+      "user_message": "can you delete the today lunch title rice & chicken",
+      "ai_message": "\nMeal deleted successfully.\n\nRemaining meals:\n- 2026-01-16, 08:30, breakfast \u2014 Oatmeal with Banana and Honey (350 calories) [id: 3]\n- 2026-01-16, 08:30, breakfast \u2014 Oatmeal with Banana and Honey (350 calories) [id: 1]"
+    }
   ]
 }

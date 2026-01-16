@@ -9,9 +9,36 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from utils.helpers import to_rfc3339, create_event, load_sessions, save_sessions, get_or_create_session
 from utils.google_calender_auth import get_credentials
+from typing import Optional
 
 env_vars = dotenv_values(".env")
 OPENAI_API_KEY = env_vars.get("OPENAI_API_KEY")
+
+meal_list = [
+        {
+            'date': '2026-01-16', 
+            'time': '08:30', 
+            'meal_type': 'breakfast', 
+            'title': 'Oatmeal with Banana and Honey', 
+            'description': 'A bowl of oatmeal topped with sliced banana and a drizzle of honey', 
+            'calories': 350, 
+            'id': 1
+        }, 
+        {
+            'date': '2026-01-16', 
+            'time': '12:30', 
+            'meal_type': 'lunch', 
+            'title': 'rice & chicken', 
+            'description': 'A bowl of rice and chicken curry', 
+            'calories': 500, 
+            'id': 2
+        }
+    ]
+recipe_list = []
+reminder_list = []
+event_list = []
+note_list = []
+
 
 def build_response(
     session_id: str,
@@ -77,6 +104,7 @@ def schedule_event(summary: str, description:str, start_datetime:str, end_dateti
         service = build("calendar", "v3", credentials=creds)
         event=create_event(service, summary=summary, description=description, start_datetime=start_datetime, end_datetime=end_datetime, timezone=timezone, repeat=repeat, reminder=reminder, method=method)
        
+        event_list.append(event)
         # Here you would typically save the meeting to a database or file
         return {"status": "Meeting scheduled successfully", "event": event}
     except Exception as e:
@@ -87,6 +115,8 @@ def save_list(title: str, items: list):
         "title": title,
         "items": items,
     }
+    
+    note_list.append(note)
     # Here you would typically save the lists to a database or file
     return {"status": "List saved successfully", "list": note}
 
@@ -100,6 +130,10 @@ def add_meal(date: str, time: str, meal_type: str, title: str, description: str,
         "calories": calories
     }
     
+    meal_entry["id"] = len(meal_list) + 1
+    
+    meal_list.append(meal_entry)
+    print(meal_list)
     # Here you would typically save the meal_entry to a database or file
     return {"status": "Meal added successfully", "meal": meal_entry}
 
@@ -113,6 +147,7 @@ def add_recipe(recipe_name: str, meal_type: str, cooking_time: float, descriptio
     }
     
     # Here you would typically save the recipe_entry to a database or file
+    recipe_list.append(recipe_entry)
     return {"status": "Recipe added successfully", "recipe": recipe_entry} 
 
 def add_reminders(title: str, time: str):
@@ -122,8 +157,66 @@ def add_reminders(title: str, time: str):
     }
     
     # Here you would typically save the reminder_entry to a database or file
+    reminder_list.append(reminder_entry)
     return {"status": "Reminder added successfully", "reminder": reminder_entry}
 
+def delete_meal(date: str, meal_type: str, title: str):
+    # print(date, meal_type, title)
+    for meal in meal_list:
+        if meal["date"] == date and meal["meal_type"] == meal_type and meal["title"] == title:
+            # print("Meal found:", meal)
+            meal_list.remove(meal)
+            print(meal_list)
+
+            return {
+                "status": "Meal deleted successfully",
+                "meal": meal_list
+            }
+    
+    # print(meal_list)
+    return {"status": f"Meal not found using the date {date}, meal type {meal_type}, and title {title}"}
+ 
+def update_meal(
+    date: str,
+    meal_type: str,
+    title: str,
+    new_date: Optional[str] = None,
+    new_time: Optional[str] = None,
+    new_meal_type: Optional[str] = None,
+    new_title: Optional[str] = None,
+    new_description: Optional[str] = None,
+    new_calories: Optional[float] = None
+):
+    for meal in meal_list:
+        # Unique identification
+        # print(date, meal_type, title)
+        if meal["date"] == date and meal["meal_type"] == meal_type and meal["title"] == title:
+            # print("Meal found:", meal)
+            # Update only provided fields
+            if new_date is not None:
+                meal["date"] = new_date
+            if new_time is not None:
+                meal["time"] = new_time
+            if new_meal_type is not None:
+                meal["meal_type"] = new_meal_type
+            if new_title is not None:
+                meal["title"] = new_title
+            if new_description is not None:
+                meal["description"] = new_description
+            if new_calories is not None:
+                meal["calories"] = new_calories
+
+            print(meal_list)
+
+            return {
+                "status": "Meal updated successfully",
+                "meal": meal
+            }
+
+    # print(meal_list)
+    return {"status": f"Meal not found using the date {date}, meal type {meal_type}, and title {title}"}
+
+    
 tools = [
     {
         "type": "function",
@@ -253,6 +346,44 @@ tools = [
                 "calories": { "type": "number" }
             },
             "required": ["date", "time", "meal_type", "title", "description", "calories"],
+            "additionalProperties": False
+        },
+        "strict": False
+    },
+    {
+        "type": "function",
+        "name": "delete_meal",
+        "description": "Delete meal from the meal tracker by date, meal type, and title.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "date": { "type": "string", "description": "Date in YYYY-MM-DD format" },
+                "meal_type": { "type": "string", "enum": ["breakfast", "lunch", "dinner"] },
+                "title": { "type": "string" }
+            },
+            "required": ["date", "meal_type", "title"],
+            "additionalProperties": False
+        },
+        "strict": False
+    },
+    {
+        "type": "function",
+        "name": "update_meal",
+        "description": "Update meal in the meal tracker by date, meal type, and title with new details.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "date": { "type": "string", "description": "Date in YYYY-MM-DD format" },
+                "meal_type": { "type": "string", "enum": ["breakfast", "lunch", "dinner"] },
+                "title": { "type": "string" },
+                "new_date": { "type": "string", "description": "New date in YYYY-MM-DD format" },
+                "new_time": { "type": "string", "description": "New time in HH:MM format" },
+                "new_meal_type": { "type": "string", "enum": ["breakfast", "lunch", "dinner"] },
+                "new_title": { "type": "string" },
+                "new_description": { "type": "string" },
+                "new_calories": { "type": "number" }
+            },
+            "required": ["date", "meal_type", "title"],
             "additionalProperties": False
         },
         "strict": False
@@ -398,6 +529,30 @@ def chat(request: ChatRequest):
             meals.append(result["meal"])
             # print("Meal added:", result)
         
+        elif tool_name == "delete_meal":
+            result = delete_meal(
+                date=tool_args["date"],
+                meal_type=tool_args["meal_type"],
+                title=tool_args["title"]
+            )
+            
+        elif tool_name == "update_meal":
+            result = update_meal(
+                date=tool_args["date"],
+                meal_type=tool_args["meal_type"],
+                title=tool_args["title"],
+                new_date=tool_args.get("new_date"),
+                new_time=tool_args.get("new_time"),
+                new_meal_type=tool_args.get("new_meal_type"),
+                new_title=tool_args.get("new_title"),
+                new_description=tool_args.get("new_description"),
+                new_calories=tool_args.get("new_calories")
+            )
+            # if result["meal"] :
+            #     meals.append(result["meal"])
+        
+            # print(meal_list)
+            
         elif tool_name == "add_recipe":
             result = add_recipe(
                 recipe_name=tool_args["recipe_name"],
