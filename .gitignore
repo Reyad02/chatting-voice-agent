@@ -20,3 +20,4 @@ htmlcov/
 .pytest_cache/
 credentials.json
 token.json
+test.py

@@ -2,7 +2,9 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from openai import OpenAI
 from datetime import datetime
-from zoneinfo import ZoneInfo  
+# from zoneinfo import ZoneInfo 
+import numpy as np
+ 
 from dotenv import dotenv_values
 import json
 from googleapiclient.discovery import build
@@ -13,6 +15,25 @@ from typing import Optional
 
 env_vars = dotenv_values(".env")
 OPENAI_API_KEY = env_vars.get("OPENAI_API_KEY")
+
+def get_embedding(text: str):
+    response = openai_client.embeddings.create(
+        model="text-embedding-3-small",
+        input=text
+    )
+    return response.data[0].embedding
+
+def cosine_similarity(a, b):
+    a = np.array(a)
+    b = np.array(b)
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+def semantic_match(query, text, threshold=0.6):
+    q_emb = get_embedding(query)
+    t_emb = get_embedding(text)
+    score = cosine_similarity(q_emb, t_emb)
+    return score >= threshold, score
+
 
 meal_list = [
         {
@@ -161,20 +182,23 @@ def add_reminders(title: str, time: str):
     return {"status": "Reminder added successfully", "reminder": reminder_entry}
 
 def delete_meal(date: str, meal_type: str, title: str):
-    # print(date, meal_type, title)
-    for meal in meal_list:
-        if meal["date"] == date and meal["meal_type"] == meal_type and meal["title"] == title:
-            # print("Meal found:", meal)
-            meal_list.remove(meal)
-            print(meal_list)
-
-            return {
-                "status": "Meal deleted successfully",
-                "meal": meal_list
-            }
+    best_match = None
+    best_score = 0.0
     
-    # print(meal_list)
-    return {"status": f"Meal not found using the date {date}, meal type {meal_type}, and title {title}"}
+    for meal in meal_list:
+        if meal["date"] == date and meal["meal_type"] == meal_type:
+            semantic_match_result, score = semantic_match(title, meal["title"], threshold=0.6)
+            print(semantic_match_result, score)
+            if semantic_match_result and score > best_score:
+                best_match = meal
+                best_score = score
+
+    if best_match is None:
+        return {"status": f"Meal not found using the date {date}, meal type {meal_type}, and title {title}"}
+    
+    meal_list.remove(best_match)
+    print(meal_list)
+    return {"status": "Meal deleted successfully", "meal": best_match}
  
 def update_meal(
     date: str,
@@ -187,36 +211,39 @@ def update_meal(
     new_description: Optional[str] = None,
     new_calories: Optional[float] = None
 ):
-    for meal in meal_list:
-        # Unique identification
-        # print(date, meal_type, title)
-        if meal["date"] == date and meal["meal_type"] == meal_type and meal["title"] == title:
-            # print("Meal found:", meal)
-            # Update only provided fields
-            if new_date is not None:
-                meal["date"] = new_date
-            if new_time is not None:
-                meal["time"] = new_time
-            if new_meal_type is not None:
-                meal["meal_type"] = new_meal_type
-            if new_title is not None:
-                meal["title"] = new_title
-            if new_description is not None:
-                meal["description"] = new_description
-            if new_calories is not None:
-                meal["calories"] = new_calories
-
-            print(meal_list)
-
-            return {
-                "status": "Meal updated successfully",
-                "meal": meal
-            }
-
-    # print(meal_list)
-    return {"status": f"Meal not found using the date {date}, meal type {meal_type}, and title {title}"}
-
+    best_match = None
+    best_score = 0.0
     
+    for meal in meal_list:
+        if meal["date"] == date and meal["meal_type"] == meal_type:
+            semantic_match_result, score = semantic_match(title, meal["title"], threshold=0.6)
+            if semantic_match_result and score > best_score:
+                best_match = meal
+                best_score = score
+    
+    if best_match is None:
+        return {"status": f"Meal not found using the date {date}, meal type {meal_type}, and title {title}"}
+    
+    if new_date is not None:
+        best_match["date"] = new_date
+    if new_time is not None:
+        best_match["time"] = new_time
+    if new_meal_type is not None:
+        best_match["meal_type"] = new_meal_type
+    if new_title is not None:
+        best_match["title"] = new_title
+    if new_description is not None:
+        best_match["description"] = new_description
+    if new_calories is not None:
+        best_match["calories"] = new_calories
+
+    print(meal_list)
+
+    return {
+        "status": "Meal updated successfully",
+        "meal": best_match
+    }
+
 tools = [
     {
         "type": "function",
@@ -457,7 +484,6 @@ def chat(request: ChatRequest):
                 Do NOT guess missing details.
                 """
 
-    
     response = openai_client.responses.create(
         model="gpt-4.1-2025-04-14",
         input=[
@@ -599,11 +625,11 @@ def chat(request: ChatRequest):
     # }
     
     return build_response(
-    session_id=session_id,
-    ai_message=output,
-    meals=meals,
-    lists=lists,
-    reminders=reminders,
-    events=events,
-    recipes=recipes
+        session_id=session_id,
+        ai_message=output,
+        meals=meals,
+        lists=lists,
+        reminders=reminders,
+        events=events,
+        recipes=recipes
 )

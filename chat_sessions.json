@@ -670,5 +670,93 @@
       "user_message": "can you delete the today lunch title rice & chicken",
       "ai_message": "\nMeal deleted successfully.\n\nRemaining meals:\n- 2026-01-16, 08:30, breakfast \u2014 Oatmeal with Banana and Honey (350 calories) [id: 3]\n- 2026-01-16, 08:30, breakfast \u2014 Oatmeal with Banana and Honey (350 calories) [id: 1]"
     }
+  ],
+  "19833730-7266-49c0-b430-29178394d85d": [
+    {
+      "user_message": "can you delete the today lunch title rice",
+      "ai_message": "\nThe meal \"Oatmeal with Banana and Honey\" scheduled for breakfast on 2026-01-16 at 08:30 has been deleted."
+    }
+  ],
+  "dc389773-a8f2-443e-a20f-18f65caa66b8": [
+    {
+      "user_message": "can you delete the today lunch title beef",
+      "ai_message": "\nNo meal was found for lunch with the title \"beef\" on January 16, 2026."
+    }
+  ],
+  "3bbe8d68-b0c6-48b0-9955-86288d504197": [
+    {
+      "user_message": "can you delete the today breakfast Oatmeal",
+      "ai_message": "\nThe lunch meal \"rice & chicken\" scheduled for 2026-01-16 at 12:30 has been deleted."
+    }
+  ],
+  "3ad1abbe-a22e-4d59-9c8d-785c678bf179": [
+    {
+      "user_message": "can you delete the today breakfast",
+      "ai_message": "\nNo meal was found for January 16, 2026, with the meal type \"breakfast\" and the title \"breakfast.\""
+    }
+  ],
+  "68e744ba-1c0c-4b9b-a970-915c02e4d40c": [
+    {
+      "user_message": "can you delete the today breakfast title Oatmeal",
+      "ai_message": "\nLunch (rice & chicken) on 2026-01-16 at 12:30 has been deleted."
+    }
+  ],
+  "a72dd64a-132d-4b5a-9691-da60eb799178": [
+    {
+      "user_message": "can you delete the today breakfast title Oatmeal",
+      "ai_message": "\nThe lunch meal \"rice & chicken\" scheduled for 2026-01-16 at 12:30 has been removed."
+    }
+  ],
+  "2d7ffb63-6478-4b4e-b3b3-89b607f925a9": [
+    {
+      "user_message": "can you delete the today breakfast title Oatmeal",
+      "ai_message": "\nThe meal \"Oatmeal with Banana and Honey\" scheduled for breakfast on January 16, 2026 at 08:30 has been deleted."
+    }
+  ],
+  "a40a0045-dfae-4c41-933a-f46890b37674": [
+    {
+      "user_message": "can you delete the today breakfast title Oatmeal",
+      "ai_message": "\nThe breakfast meal \"Oatmeal with Banana and Honey\" scheduled for January 16, 2026, at 08:30 has been removed."
+    }
+  ],
+  "6a8f29e8-ff9d-439a-ad15-57c15f8d7ca8": [
+    {
+      "user_message": "can you delete the today breakfast title rice",
+      "ai_message": "\nNo meal was found for January 16, 2026, with the meal type \"breakfast\" and the title \"rice.\""
+    }
+  ],
+  "d6ac764e-56a6-4dda-846a-5a12c1d96d5a": [
+    {
+      "user_message": "can you update the today breakfast title rice with beef",
+      "ai_message": "Sure! Could you please provide the new title you want for your breakfast today, currently titled \"rice with beef\"? If you also want to update any other details (description, time, or calories), please let me know."
+    },
+    {
+      "user_message": "only update the title",
+      "ai_message": "\nNo meal was found for January 16, 2026, with the meal type breakfast and the title \"rice with beef.\""
+    }
+  ],
+  "f89e6bc6-ef0e-4bc1-a52e-53967461f9da": [
+    {
+      "user_message": "can you update my today breakfast title. the current tile is 'rice chicken'. the updated title should be 'rice with beef'",
+      "ai_message": "\nNo meal was found with the date January 16, 2026, meal type breakfast, and the title \"rice chicken.\""
+    }
+  ],
+  "d4f25cf7-29cf-4ade-96a5-f07c890c3125": [
+    {
+      "user_message": "can you update my today launch title. the current tile is 'rice chicken'. the updated title should be 'rice with beef'",
+      "ai_message": "\nThe meal has been updated to the following:\n\n- Date: 2026-01-16\n- Time: 12:30\n- Meal Type: Lunch\n- Title: Rice with beef\n- Description: A bowl of rice and chicken curry\n- Calories: 500"
+    }
+  ],
+  "7c824302-2153-4601-8281-d4043a847ac7": [
+    {
+      "user_message": "can you update my today breakfast title. the current title is 'Oatmeal'. the updated title should be 'rice with beef'",
+      "ai_message": "\nYour lunch for January 16, 2026, at 12:30 has been updated to \"rice & chicken\" with the description \"A bowl of rice and chicken curry\" and 500 calories."
+    }
+  ],
+  "096b7a69-0cf1-4562-9b81-22025ce4e6dd": [
+    {
+      "user_message": "can you update my today dinner title. the current title is 'Oatmeal'. the updated title should be 'rice with beef'",
+      "ai_message": "\nNo meal was found for dinner titled \"Oatmeal\" on January 16, 2026."
+    }
   ]
 }
