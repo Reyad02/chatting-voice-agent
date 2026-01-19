@@ -8,31 +8,31 @@ import numpy as np
 from dotenv import dotenv_values
 import json
 from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-from utils.helpers import to_rfc3339, create_event, load_sessions, save_sessions, get_or_create_session, update_event_by_title_date
+# from googleapiclient.errors import HttpError
+from utils.helpers import  create_event, load_sessions, save_sessions, get_or_create_session
 from utils.google_calender_auth import get_credentials
-from typing import Optional
+# from typing import Optional
 
 env_vars = dotenv_values(".env")
 OPENAI_API_KEY = env_vars.get("OPENAI_API_KEY")
 
-def get_embedding(text: str):
-    response = openai_client.embeddings.create(
-        model="text-embedding-3-small",
-        input=text
-    )
-    return response.data[0].embedding
+# def get_embedding(text: str):
+#     response = openai_client.embeddings.create(
+#         model="text-embedding-3-small",
+#         input=text
+#     )
+#     return response.data[0].embedding
 
-def cosine_similarity(a, b):
-    a = np.array(a)
-    b = np.array(b)
-    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+# def cosine_similarity(a, b):
+#     a = np.array(a)
+#     b = np.array(b)
+#     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
-def semantic_match(query, text, threshold=0.6):
-    q_emb = get_embedding(query)
-    t_emb = get_embedding(text)
-    score = cosine_similarity(q_emb, t_emb)
-    return score >= threshold, score
+# def semantic_match(query, text, threshold=0.6):
+#     q_emb = get_embedding(query)
+#     t_emb = get_embedding(text)
+#     score = cosine_similarity(q_emb, t_emb)
+#     return score >= threshold, score
 
 meal_list = [
         {
@@ -128,44 +128,44 @@ def build_response(
         "recipes": recipes or []
     }
 
-def find_events(start_datetime: str, end_datetime: str, timezone: str):
-    try:
-        creds = get_credentials()
-        service = build("calendar", "v3", credentials=creds)
+# def find_events(start_datetime: str, end_datetime: str, timezone: str):
+#     try:
+#         creds = get_credentials()
+#         service = build("calendar", "v3", credentials=creds)
 
-        start_rfc3339 = to_rfc3339(start_datetime, timezone)
-        end_rfc3339 = to_rfc3339(end_datetime, timezone)
-        events_result = service.events().list(
-            calendarId="primary",
-            timeMin=start_rfc3339,
-            timeMax=end_rfc3339,
-            # q=query,
-            singleEvents=True,
-            orderBy="startTime",
-            timeZone=timezone
-        ).execute()
+#         start_rfc3339 = to_rfc3339(start_datetime, timezone)
+#         end_rfc3339 = to_rfc3339(end_datetime, timezone)
+#         events_result = service.events().list(
+#             calendarId="primary",
+#             timeMin=start_rfc3339,
+#             timeMax=end_rfc3339,
+#             # q=query,
+#             singleEvents=True,
+#             orderBy="startTime",
+#             timeZone=timezone
+#         ).execute()
 
-        events = events_result.get("items", [])
-        # print(events)
-        # print(f"Found {len(events)} events.")
-        # print(events)
+#         events = events_result.get("items", [])
+#         # print(events)
+#         # print(f"Found {len(events)} events.")
+#         # print(events)
 
-        return {
-            "status": "success",
-            "count": len(events),
-            "events": [
-                {
-                    "event_id": e["id"],
-                    "summary": e.get("summary"),
-                    "start": e["start"].get("dateTime"),
-                    "end": e["end"].get("dateTime")
-                }
-                for e in events
-            ]
-        }
+#         return {
+#             "status": "success",
+#             "count": len(events),
+#             "events": [
+#                 {
+#                     "event_id": e["id"],
+#                     "summary": e.get("summary"),
+#                     "start": e["start"].get("dateTime"),
+#                     "end": e["end"].get("dateTime")
+#                 }
+#                 for e in events
+#             ]
+#         }
 
-    except HttpError as error:
-        return {"status": "error", "error": str(error)}
+#     except HttpError as error:
+#         return {"status": "error", "error": str(error)}
 
 def schedule_event(summary: str, description:str, start_datetime:str, end_datetime:str, timezone:str, repeat:str="never", reminder:str="15 minutes", method:str="popup"):
     try:
@@ -183,120 +183,120 @@ def schedule_event(summary: str, description:str, start_datetime:str, end_dateti
     except Exception as e:
         return {"status": "Error scheduling meeting", "error": str(e)}
 
-def update_event(
-    summary: str,
-    date: str,
-    new_summary: Optional[str] = None,
-    description: Optional[str] = None,
-    start_datetime: Optional[str] = None,
-    end_datetime: Optional[str] = None,
-    timezone: Optional[str] = None,
-    repeat: Optional[str] = None,
-    reminder: Optional[str] = None,
-    method: Optional[str] = None,
-):
-    print(summary, date, new_summary, description, start_datetime, end_datetime, timezone, repeat, reminder, method)
-    try:
-        creds = get_credentials()
-        service = build("calendar", "v3", credentials=creds)
+# def update_event(
+#     summary: str,
+#     date: str,
+#     new_summary: Optional[str] = None,
+#     description: Optional[str] = None,
+#     start_datetime: Optional[str] = None,
+#     end_datetime: Optional[str] = None,
+#     timezone: Optional[str] = None,
+#     repeat: Optional[str] = None,
+#     reminder: Optional[str] = None,
+#     method: Optional[str] = None,
+# ):
+#     print(summary, date, new_summary, description, start_datetime, end_datetime, timezone, repeat, reminder, method)
+#     try:
+#         creds = get_credentials()
+#         service = build("calendar", "v3", credentials=creds)
 
-        # ---------- 1. Find matching event ----------
-        best_match = None
-        best_score = 0.0
+#         # ---------- 1. Find matching event ----------
+#         best_match = None
+#         best_score = 0.0
 
-        for e in event_list:
-            e_date = e["start"]["dateTime"].split("T")[0]
-            if e_date == date:
-                matched, score = semantic_match(
-                    summary, e.get("summary", ""), threshold=0.6
-                )
-                if matched and score > best_score:
-                    best_match = e
-                    best_score = score
+#         for e in event_list:
+#             e_date = e["start"]["dateTime"].split("T")[0]
+#             if e_date == date:
+#                 matched, score = semantic_match(
+#                     summary, e.get("summary", ""), threshold=0.6
+#                 )
+#                 if matched and score > best_score:
+#                     best_match = e
+#                     best_score = score
 
-        if not best_match:
-            return {
-                "status": "error",
-                "message": f"No event found on {date} with summary '{summary}'"
-            }
+#         if not best_match:
+#             return {
+#                 "status": "error",
+#                 "message": f"No event found on {date} with summary '{summary}'"
+#             }
 
-        event_id = best_match["id"]
-        event = best_match
+#         event_id = best_match["id"]
+#         event = best_match
         
-        # print("Found event to update:", event)
-        updated_event = update_event_by_title_date(
-            event,
-            new_summary=new_summary,
-            description=description,
-            start_datetime=start_datetime,
-            end_datetime=end_datetime,
-            timezone=timezone,
-            repeat=repeat,
-            reminder=reminder,
-            method=method,
-        )
+#         # print("Found event to update:", event)
+#         updated_event = update_event_by_title_date(
+#             event,
+#             new_summary=new_summary,
+#             description=description,
+#             start_datetime=start_datetime,
+#             end_datetime=end_datetime,
+#             timezone=timezone,
+#             repeat=repeat,
+#             reminder=reminder,
+#             method=method,
+#         )
 
-        # print("Updated event data:", updated_event)
+#         # print("Updated event data:", updated_event)
 
-        updated_event = service.events().update(
-            calendarId="primary",
-            eventId=event_id,
-            body=event
-        ).execute()
+#         updated_event = service.events().update(
+#             calendarId="primary",
+#             eventId=event_id,
+#             body=event
+#         ).execute()
         
-        # event must be store in the database
+#         # event must be store in the database
   
-        print("Event updated:", updated_event)
+#         print("Event updated:", updated_event)
         
-        return {"status": "Meeting updated successfully", "event": updated_event}
+#         return {"status": "Meeting updated successfully", "event": updated_event}
 
 
-    except Exception as e:
-        return {
-            "status": "error",
-            "error": str(e)
-        }
+#     except Exception as e:
+#         return {
+#             "status": "error",
+#             "error": str(e)
+#         }
 
-def delete_event(summary: str, date: str):
-    try:
-        creds = get_credentials()
-        service = build("calendar", "v3", credentials=creds)
+# def delete_event(summary: str, date: str):
+#     try:
+#         creds = get_credentials()
+#         service = build("calendar", "v3", credentials=creds)
         
-        best_match = None
-        best_score = 0.0
+#         best_match = None
+#         best_score = 0.0
 
-        for e in event_list:
-            e_date = e["start"]["dateTime"].split("T")[0]
-            if e_date == date:
-                matched, score = semantic_match(
-                    summary, e.get("summary", ""), threshold=0.6
-                )
-                if matched and score > best_score:
-                    best_match = e
-                    best_score = score
+#         for e in event_list:
+#             e_date = e["start"]["dateTime"].split("T")[0]
+#             if e_date == date:
+#                 matched, score = semantic_match(
+#                     summary, e.get("summary", ""), threshold=0.6
+#                 )
+#                 if matched and score > best_score:
+#                     best_match = e
+#                     best_score = score
 
-        if not best_match:
-            return {
-                "status": "error",
-                "message": f"No event found on {date} with summary '{summary}'"
-            }
+#         if not best_match:
+#             return {
+#                 "status": "error",
+#                 "message": f"No event found on {date} with summary '{summary}'"
+#             }
 
-        event_id = best_match["id"]
-        # event = best_match
+#         event_id = best_match["id"]
+#         # event = best_match
 
-        service.events().delete(
-            calendarId="primary",
-            eventId=event_id
-        ).execute()
+#         service.events().delete(
+#             calendarId="primary",
+#             eventId=event_id
+#         ).execute()
         
-        # event must be removed from the database
-        event_list.remove(best_match)
+#         # event must be removed from the database
+#         event_list.remove(best_match)
 
-        # print(f"Event of {summary} on {date} deleted.")
-        return {"status": "Event deleted successfully", "event": best_match}
+#         # print(f"Event of {summary} on {date} deleted.")
+#         return {"status": "Event deleted successfully", "event": best_match}
 
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
+#     except Exception as e:
+#         return {"status": "error", "error": str(e)}
     
 def save_list(title: str, items: list):
     note = {
@@ -318,7 +318,7 @@ def add_meal(date: str, time: str, meal_type: str, title: str, description: str,
         "calories": calories
     }
     
-    meal_entry["id"] = len(meal_list) + 1
+    # meal_entry["id"] = len(meal_list) + 1
     
     meal_list.append(meal_entry)
     print(meal_list)
@@ -348,70 +348,70 @@ def add_reminders(title: str, time: str):
     reminder_list.append(reminder_entry)
     return {"status": "Reminder added successfully", "reminder": reminder_entry}
 
-def delete_meal(date: str, meal_type: str, title: str):
-    best_match = None
-    best_score = 0.0
+# def delete_meal(date: str, meal_type: str, title: str):
+#     best_match = None
+#     best_score = 0.0
     
-    for meal in meal_list:
-        if meal["date"] == date and meal["meal_type"] == meal_type:
-            semantic_match_result, score = semantic_match(title, meal["title"], threshold=0.6)
-            print(semantic_match_result, score)
-            if semantic_match_result and score > best_score:
-                best_match = meal
-                best_score = score
+#     for meal in meal_list:
+#         if meal["date"] == date and meal["meal_type"] == meal_type:
+#             semantic_match_result, score = semantic_match(title, meal["title"], threshold=0.6)
+#             print(semantic_match_result, score)
+#             if semantic_match_result and score > best_score:
+#                 best_match = meal
+#                 best_score = score
 
-    if best_match is None:
-        return {"status": f"Meal not found using the date {date}, meal type {meal_type}, and title {title}"}
+#     if best_match is None:
+#         return {"status": f"Meal not found using the date {date}, meal type {meal_type}, and title {title}"}
     
-    # Here you would typically delete the meal from a database or file
-    meal_list.remove(best_match)
-    print(meal_list)
-    return {"status": "Meal deleted successfully", "meal": best_match}
+#     # Here you would typically delete the meal from a database or file
+#     meal_list.remove(best_match)
+#     print(meal_list)
+#     return {"status": "Meal deleted successfully", "meal": best_match}
  
-def update_meal(
-    date: str,
-    meal_type: str,
-    title: str,
-    new_date: Optional[str] = None,
-    new_time: Optional[str] = None,
-    new_meal_type: Optional[str] = None,
-    new_title: Optional[str] = None,
-    new_description: Optional[str] = None,
-    new_calories: Optional[float] = None
-):
-    best_match = None
-    best_score = 0.0
+# def update_meal(
+#     date: str,
+#     meal_type: str,
+#     title: str,
+#     new_date: Optional[str] = None,
+#     new_time: Optional[str] = None,
+#     new_meal_type: Optional[str] = None,
+#     new_title: Optional[str] = None,
+#     new_description: Optional[str] = None,
+#     new_calories: Optional[float] = None
+# ):
+#     best_match = None
+#     best_score = 0.0
     
-    for meal in meal_list:
-        if meal["date"] == date and meal["meal_type"] == meal_type:
-            semantic_match_result, score = semantic_match(title, meal["title"], threshold=0.6)
-            if semantic_match_result and score > best_score:
-                best_match = meal
-                best_score = score
+#     for meal in meal_list:
+#         if meal["date"] == date and meal["meal_type"] == meal_type:
+#             semantic_match_result, score = semantic_match(title, meal["title"], threshold=0.6)
+#             if semantic_match_result and score > best_score:
+#                 best_match = meal
+#                 best_score = score
     
-    if best_match is None:
-        return {"status": f"Meal not found using the date {date}, meal type {meal_type}, and title {title}"}
+#     if best_match is None:
+#         return {"status": f"Meal not found using the date {date}, meal type {meal_type}, and title {title}"}
     
-    if new_date is not None:
-        best_match["date"] = new_date
-    if new_time is not None:
-        best_match["time"] = new_time
-    if new_meal_type is not None:
-        best_match["meal_type"] = new_meal_type
-    if new_title is not None:
-        best_match["title"] = new_title
-    if new_description is not None:
-        best_match["description"] = new_description
-    if new_calories is not None:
-        best_match["calories"] = new_calories
+#     if new_date is not None:
+#         best_match["date"] = new_date
+#     if new_time is not None:
+#         best_match["time"] = new_time
+#     if new_meal_type is not None:
+#         best_match["meal_type"] = new_meal_type
+#     if new_title is not None:
+#         best_match["title"] = new_title
+#     if new_description is not None:
+#         best_match["description"] = new_description
+#     if new_calories is not None:
+#         best_match["calories"] = new_calories
 
-    print(meal_list)
-    # Here you would typically update the meal in a database or file
+#     print(meal_list)
+#     # Here you would typically update the meal in a database or file
 
-    return {
-        "status": "Meal updated successfully",
-        "meal": best_match
-    }
+#     return {
+#         "status": "Meal updated successfully",
+#         "meal": best_match
+#     }
 
 tools = [
     {
@@ -461,80 +461,80 @@ tools = [
         },
         # "strict": True,
     },
-    {
-        "type": "function",
-        "name": "update_event",
-        "description": "Update an existing calendar event identified by summary and date with new details.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "summary": {
-                    "type": "string",
-                    "description": "Summary of the existing event to be updated"
-                },
-                "date": {
-                    "type": "string",
-                    "description": "Date of the existing event in YYYY-MM-DD format"
-                },
-                "new_summary" :{
-                    "type": "string",
-                    "description": "New summary of the event"
-                },
-                "description": {
-                    "type": "string",
-                    "description": "New description of the event"
-                },
-                "start_datetime": {
-                    "type": "string",
-                    "description": "New start date and time of the event in ISO 8601 format"
-                },
-                "end_datetime": {
-                    "type": "string",
-                    "description": "New end date and time of the event in ISO 8601 format"
-                },
-                "timezone": {
-                    "type": "string",
-                    "description": "New timezone of the event"
-                },
-                "repeat": {
-                    "type": "string",
-                    "description": "New repeat frequency of the event (never, everyday, every_week, every_month)",
-                    "enum": ["never", "everyday", "every_week", "every_month"]
-                },
-                "reminder": {
-                    "type": "string",
-                    "description": "New reminder time before the event (e.g., 15 minutes). The format is '<number> <unit>' where unit can be minutes, hours, days, or weeks.",
-                },
-                "method": {
-                    "type": "string",
-                    "description": "New reminder method (e.g., popup, email)",
-                    "enum": ["popup", "email"]
-                }
-            },
-            "required": ["summary", "date"],
-            "additionalProperties": False,
-        }
-    },
-    {
-      "type": "function",
-      "name": "delete_event",
-        "description": "Delete a calendar event identified by summary and date.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "summary": {
-                    "type": "string",
-                    "description": "Summary of the event to be deleted"
-                },
-                "date": {
-                    "type": "string",
-                    "description": "Date of the event to be deleted in YYYY-MM-DD format"
-                }
-            },
-            "required": ["summary", "date"],
-            "additionalProperties": False,
-        } 
-    },
+    # {
+    #     "type": "function",
+    #     "name": "update_event",
+    #     "description": "Update an existing calendar event identified by summary and date with new details.",
+    #     "parameters": {
+    #         "type": "object",
+    #         "properties": {
+    #             "summary": {
+    #                 "type": "string",
+    #                 "description": "Summary of the existing event to be updated"
+    #             },
+    #             "date": {
+    #                 "type": "string",
+    #                 "description": "Date of the existing event in YYYY-MM-DD format"
+    #             },
+    #             "new_summary" :{
+    #                 "type": "string",
+    #                 "description": "New summary of the event"
+    #             },
+    #             "description": {
+    #                 "type": "string",
+    #                 "description": "New description of the event"
+    #             },
+    #             "start_datetime": {
+    #                 "type": "string",
+    #                 "description": "New start date and time of the event in ISO 8601 format"
+    #             },
+    #             "end_datetime": {
+    #                 "type": "string",
+    #                 "description": "New end date and time of the event in ISO 8601 format"
+    #             },
+    #             "timezone": {
+    #                 "type": "string",
+    #                 "description": "New timezone of the event"
+    #             },
+    #             "repeat": {
+    #                 "type": "string",
+    #                 "description": "New repeat frequency of the event (never, everyday, every_week, every_month)",
+    #                 "enum": ["never", "everyday", "every_week", "every_month"]
+    #             },
+    #             "reminder": {
+    #                 "type": "string",
+    #                 "description": "New reminder time before the event (e.g., 15 minutes). The format is '<number> <unit>' where unit can be minutes, hours, days, or weeks.",
+    #             },
+    #             "method": {
+    #                 "type": "string",
+    #                 "description": "New reminder method (e.g., popup, email)",
+    #                 "enum": ["popup", "email"]
+    #             }
+    #         },
+    #         "required": ["summary", "date"],
+    #         "additionalProperties": False,
+    #     }
+    # },
+    # {
+    #   "type": "function",
+    #   "name": "delete_event",
+    #     "description": "Delete a calendar event identified by summary and date.",
+    #     "parameters": {
+    #         "type": "object",
+    #         "properties": {
+    #             "summary": {
+    #                 "type": "string",
+    #                 "description": "Summary of the event to be deleted"
+    #             },
+    #             "date": {
+    #                 "type": "string",
+    #                 "description": "Date of the event to be deleted in YYYY-MM-DD format"
+    #             }
+    #         },
+    #         "required": ["summary", "date"],
+    #         "additionalProperties": False,
+    #     } 
+    # },
     {
         "type": "function",
         "name": "save_list",
@@ -620,44 +620,44 @@ tools = [
         },
         "strict": False
     },
-    {
-        "type": "function",
-        "name": "delete_meal",
-        "description": "Delete meal from the meal tracker by date, meal type, and title.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "date": { "type": "string", "description": "Date in YYYY-MM-DD format" },
-                "meal_type": { "type": "string", "enum": ["breakfast", "lunch", "dinner"] },
-                "title": { "type": "string" }
-            },
-            "required": ["date", "meal_type", "title"],
-            "additionalProperties": False
-        },
-        "strict": False
-    },
-    {
-        "type": "function",
-        "name": "update_meal",
-        "description": "Update meal in the meal tracker by date, meal type, and title with new details.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "date": { "type": "string", "description": "Date in YYYY-MM-DD format" },
-                "meal_type": { "type": "string", "enum": ["breakfast", "lunch", "dinner"] },
-                "title": { "type": "string" },
-                "new_date": { "type": "string", "description": "New date in YYYY-MM-DD format" },
-                "new_time": { "type": "string", "description": "New time in HH:MM format" },
-                "new_meal_type": { "type": "string", "enum": ["breakfast", "lunch", "dinner"] },
-                "new_title": { "type": "string" },
-                "new_description": { "type": "string" },
-                "new_calories": { "type": "number" }
-            },
-            "required": ["date", "meal_type", "title"],
-            "additionalProperties": False
-        },
-        "strict": False
-    },
+    # {
+    #     "type": "function",
+    #     "name": "delete_meal",
+    #     "description": "Delete meal from the meal tracker by date, meal type, and title.",
+    #     "parameters": {
+    #         "type": "object",
+    #         "properties": {
+    #             "date": { "type": "string", "description": "Date in YYYY-MM-DD format" },
+    #             "meal_type": { "type": "string", "enum": ["breakfast", "lunch", "dinner"] },
+    #             "title": { "type": "string" }
+    #         },
+    #         "required": ["date", "meal_type", "title"],
+    #         "additionalProperties": False
+    #     },
+    #     "strict": False
+    # },
+    # {
+    #     "type": "function",
+    #     "name": "update_meal",
+    #     "description": "Update meal in the meal tracker by date, meal type, and title with new details.",
+    #     "parameters": {
+    #         "type": "object",
+    #         "properties": {
+    #             "date": { "type": "string", "description": "Date in YYYY-MM-DD format" },
+    #             "meal_type": { "type": "string", "enum": ["breakfast", "lunch", "dinner"] },
+    #             "title": { "type": "string" },
+    #             "new_date": { "type": "string", "description": "New date in YYYY-MM-DD format" },
+    #             "new_time": { "type": "string", "description": "New time in HH:MM format" },
+    #             "new_meal_type": { "type": "string", "enum": ["breakfast", "lunch", "dinner"] },
+    #             "new_title": { "type": "string" },
+    #             "new_description": { "type": "string" },
+    #             "new_calories": { "type": "number" }
+    #         },
+    #         "required": ["date", "meal_type", "title"],
+    #         "additionalProperties": False
+    #     },
+    #     "strict": False
+    # },
     {
         "type": "function",
         "name": "add_recipe",
@@ -755,14 +755,14 @@ def chat(request: ChatRequest):
         tool_args = json.loads(tool_call.arguments)
 
         if tool_name == "schedule_event":
-            existing_events = find_events(tool_args["start_datetime"], tool_args["end_datetime"], tool_args["timezone"])
-            if existing_events["count"] > 0:
-                events_list = "\n".join(
-                    [f"- {e['summary']} from {e['start']} to {e['end']}" for e in existing_events["events"]]
-                )
-                # print(events_list)
-                result  = f"There are already events scheduled during this time:\n{events_list}\nPlease choose a different time."
-            else:
+            # existing_events = find_events(tool_args["start_datetime"], tool_args["end_datetime"], tool_args["timezone"])
+            # if existing_events["count"] > 0:
+            #     events_list = "\n".join(
+            #         [f"- {e['summary']} from {e['start']} to {e['end']}" for e in existing_events["events"]]
+            #     )
+            #     # print(events_list)
+            #     result  = f"There are already events scheduled during this time:\n{events_list}\nPlease choose a different time."
+            # else:
                 result = schedule_event(
                     summary=tool_args["summary"],
                     description=tool_args["description"],
@@ -780,27 +780,27 @@ def chat(request: ChatRequest):
         # elif tool_name == "find_events":
         #     result = find_events(tool_args["start_datetime"], tool_args["end_datetime"], tool_args["timezone"])
             
-        elif tool_name == "update_event":
-            result = update_event(
-                summary=tool_args["summary"],
-                date=tool_args["date"],
-                new_summary=tool_args.get("new_summary"),
-                description=tool_args.get("description"),
-                start_datetime=tool_args.get("start_datetime"),
-                end_datetime=tool_args.get("end_datetime"),
-                timezone=tool_args.get("timezone"),
-                repeat=tool_args.get("repeat"),
-                reminder=tool_args.get("reminder"),
-                method=tool_args.get("method")
-            )
-            # if result["status"] == "success":
-            #     events.append(result["event"])
+        # elif tool_name == "update_event":
+        #     result = update_event(
+        #         summary=tool_args["summary"],
+        #         date=tool_args["date"],
+        #         new_summary=tool_args.get("new_summary"),
+        #         description=tool_args.get("description"),
+        #         start_datetime=tool_args.get("start_datetime"),
+        #         end_datetime=tool_args.get("end_datetime"),
+        #         timezone=tool_args.get("timezone"),
+        #         repeat=tool_args.get("repeat"),
+        #         reminder=tool_args.get("reminder"),
+        #         method=tool_args.get("method")
+        #     )
+        #     # if result["status"] == "success":
+        #     #     events.append(result["event"])
         
-        elif tool_name == "delete_event":
-            result = delete_event(
-                summary=tool_args["summary"],
-                date=tool_args["date"]
-            )
+        # elif tool_name == "delete_event":
+        #     result = delete_event(
+        #         summary=tool_args["summary"],
+        #         date=tool_args["date"]
+        #     )
                        
         elif tool_name == "save_list":
             result = save_list(
@@ -821,29 +821,29 @@ def chat(request: ChatRequest):
             meals.append(result["meal"])
             # print("Meal added:", result)
         
-        elif tool_name == "delete_meal":
-            result = delete_meal(
-                date=tool_args["date"],
-                meal_type=tool_args["meal_type"],
-                title=tool_args["title"]
-            )
+        # elif tool_name == "delete_meal":
+        #     result = delete_meal(
+        #         date=tool_args["date"],
+        #         meal_type=tool_args["meal_type"],
+        #         title=tool_args["title"]
+        #     )
             
-        elif tool_name == "update_meal":
-            result = update_meal(
-                date=tool_args["date"],
-                meal_type=tool_args["meal_type"],
-                title=tool_args["title"],
-                new_date=tool_args.get("new_date"),
-                new_time=tool_args.get("new_time"),
-                new_meal_type=tool_args.get("new_meal_type"),
-                new_title=tool_args.get("new_title"),
-                new_description=tool_args.get("new_description"),
-                new_calories=tool_args.get("new_calories")
-            )
-            # if result["meal"] :
-            #     meals.append(result["meal"])
+        # elif tool_name == "update_meal":
+        #     result = update_meal(
+        #         date=tool_args["date"],
+        #         meal_type=tool_args["meal_type"],
+        #         title=tool_args["title"],
+        #         new_date=tool_args.get("new_date"),
+        #         new_time=tool_args.get("new_time"),
+        #         new_meal_type=tool_args.get("new_meal_type"),
+        #         new_title=tool_args.get("new_title"),
+        #         new_description=tool_args.get("new_description"),
+        #         new_calories=tool_args.get("new_calories")
+        #     )
+        #     # if result["meal"] :
+        #     #     meals.append(result["meal"])
         
-            # print(meal_list)
+        #     # print(meal_list)
             
         elif tool_name == "add_recipe":
             result = add_recipe(

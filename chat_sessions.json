@@ -932,5 +932,59 @@
       "user_message": "can you delete today event title 'project alpha update'",
       "ai_message": "\nThe event \"Weekly Team Sync \u2013 Project Alpha Update\" scheduled for January 16, 2026, from 15:00 to 16:00 (Asia/Dhaka) has been removed."
     }
+  ],
+  "0bda4560-cff6-47d1-a20e-abf3a5fd2875": [
+    {
+      "user_message": "i have an event today, title and description will be 'test meeting' time is 10:00am to 10:30pm ",
+      "ai_message": "Could you please confirm a few details to help me schedule your event:\n\n1. What is your timezone? (e.g., Asia/Kolkata, America/New_York)\n2. Would you like this meeting to repeat (daily, weekly, monthly, or never)?\n3. Do you want a reminder before the meeting? If yes, when and how (popup or email)? \n\nOnce you provide these details, I can schedule your \"test meeting\" event for you."
+    },
+    {
+      "user_message": "time zone dhaka, no repetition,  by email at least 30 min before",
+      "ai_message": "\nYour meeting \"test meeting\" is scheduled for January 19, 2026, from 10:00 AM to 10:30 PM (Asia/Dhaka time). Here are the details:\n\n- Description: test meeting\n- Organizer: almomenreyad02@gmail.com\n- Reminder: Email will be sent 30 minutes before the meeting\n\nYou can view the event here: test meeting event link"
+    }
+  ],
+  "21b0085a-9cf0-49bc-b3bc-2e9e131ff913": [
+    {
+      "user_message": "make a list of shopping, jersey, pant, shirt",
+      "ai_message": "\nYour shopping list has been saved with the following items: jersey, pant, and shirt."
+    }
+  ],
+  "241cf9c5-8152-4bad-9878-33eeab624913": [
+    {
+      "user_message": "make a meal for breakfast title 'rice'",
+      "ai_message": "Great! To log this meal for breakfast with the title \"rice,\" I'll need a couple more details:\n\n1. Can you provide a short description of the meal (e.g., how it's prepared or any ingredients)?\n2. Do you know the approximate calorie count for this meal?\n3. What date and time did you have (or plan to have) this breakfast?\n\nOnce I have this information, I can save it to your meal tracker!"
+    },
+    {
+      "user_message": "today i will it at 8 am, description will be rice and beef, i don't the calorie ",
+      "ai_message": "\nBreakfast has been scheduled for January 19, 2026, at 08:00: rice and beef."
+    },
+    {
+      "user_message": "today i will it at 8 am, description will be rice and beef, i don't the calorie ",
+      "ai_message": "\nYour breakfast meal \"rice\" (rice and beef) for January 19, 2026, at 08:00 has been added with 0 calories."
+    }
+  ],
+  "66699017-6218-40de-9aeb-715a224abbbf": [
+    {
+      "user_message": "add a recipe rice and beef ",
+      "ai_message": "To help you add the \"rice and beef\" recipe, could you please provide the following details:\n\n1. Is this for breakfast, lunch, or dinner?\n2. How many minutes does it take to cook?\n3. Please give a brief description of the recipe (e.g., key ingredients, cooking steps).\n4. How would you rate this recipe out of 5 stars?\n\nOnce you provide these details, I\u2019ll add the recipe for you!"
+    },
+    {
+      "user_message": "for lunch, 45 mins, 4.5 star, description will be hot rice and beef",
+      "ai_message": "\nRecipe \"rice and beef\" has been added for lunch. Cooking time is 45 minutes, and it has a rating of 4.5. Description: Hot rice and beef."
+    }
+  ],
+  "4213921a-7dc8-4f76-ad9f-7cb0ff0b7395": [
+    {
+      "user_message": "can you remind me that i have a meeting today ",
+      "ai_message": "Sure! Could you please provide the time of the meeting? This will help me set the reminder accurately for you."
+    },
+    {
+      "user_message": "time 7 pm ",
+      "ai_message": "Great! Could you please provide a short title or description for the meeting? For example, \"Project meeting,\" \"Doctor Appointment,\" or just \"Meeting.\" This will help me set a clear reminder for you."
+    },
+    {
+      "user_message": "sales meeting",
+      "ai_message": "\nYour reminder for \"sales meeting\" has been set for today."
+    }
   ]
 }
